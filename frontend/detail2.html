@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="ja">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>マイクロブログ 記事詳細</title>
+    <link rel="stylesheet" href="/css/general.css" />
+
+    <!-- jsファイルをimport -->
+    <script type="text/javascript" src="/js/general.js"></script>
+    <script type="text/javascript" src="/js/api.js"></script>
+  </head>
+  <body>
+    <div class="container">
+      <h1>記事詳細</h1>
+      <div id="message-area" class="hidden"></div>
+      <div id="article-detail">
+        <p>記事を読み込み中です...</p>
+      </div>
+      <div class="actions">
+        <a href="/top2.html">一覧へ戻る</a>
+        <a id="modifyLink" href="#">修正</a>
+        <a id="deleteLink" href="#">削除</a>
+      </div>
+    </div>
+
+    <script>
+      const API_BASE_URL = "http://localhost:8000";
+      const ARTICLE_PATH = "article";
+      const articleDetail = document.getElementById("article-detail");
+
+      // URLから記事IDを取得する
+      const urlParams = new URLSearchParams(window.location.search);
+      const articleId = urlParams.get("ArticleId");
+
+      if (!articleId) {
+        articleDetail.innerHTML = `<p class="error">記事IDが指定されていません。</p>`;
+      } else {
+        const ARTICLE_DETAIL_URL = `${API_BASE_URL}/${ARTICLE_PATH}/${articleId}`;
+
+        fetch(ARTICLE_DETAIL_URL)
+          .then((response) => {
+            if (!response.ok) {
+              throw new Error(
+                `${ARTICLE_DETAIL_URL} 記事の取得に失敗しました。ステータス: ${response.status}`
+              );
+            }
+            return response.json();
+          })
+          .then((article) => {
+            articleDetail.innerHTML = `
+              <h1>${article.title}</h1>
+              <div class="meta-info">
+                ユーザーID: ${article.user_id} | 投稿日: ${article.regist_date}
+                <br />
+                ${article.body}
+              </div>
+            `;
+          })
+          .catch((error) => {
+            console.error("エラー:", error);
+            articleDetail.innerHTML = `<p class="error">${error.message}</p>`;
+          });
+      }
+
+      // DOMの読み込み完了後に実行するのが安全
+      document.addEventListener("DOMContentLoaded", () => {
+        // idを使ってa要素を取得
+        const modifyLink = document.getElementById("modifyLink");
+        modifyLink.href = `/modify.html?ArticleId=${articleId}`;
+        const deleteLink = document.getElementById("deleteLink"); // 削除リンクを取得
+        deleteLink.href = `/delete.html?ArticleId=${articleId}`;
+      });
+    </script>
+  </body>
+</html>

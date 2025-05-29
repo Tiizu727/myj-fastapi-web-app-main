@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="ja">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>マイクロブログ 記事削除</title>
+    <link rel="stylesheet" href="/css/general.css" />
+    <script type="text/javascript" src="/js/general.js"></script>
+    <script type="text/javascript" src="/js/api.js"></script>
+  </head>
+  <body>
+    <div class="container">
+      <h1>記事削除</h1>
+      <div id="message-area"></div>
+      <div id="article-to-delete"></div>
+      <p>この記事を本当に削除しますか？削除後は復活できません。</p>
+      <div class="actions">
+        <button id="confirm-delete-button" class="button-danger">削除</button>
+        <button id="cancel-delete-button" class="button">キャンセル</button>
+      </div>
+    </div>
+
+    <script>
+      const API_BASE_URL = "http://localhost:8000";
+      const ARTICLE_PATH = "article";
+
+      const messageArea = document.getElementById("message-area");
+      const confirmDeleteButton = document.getElementById(
+        "confirm-delete-button"
+      );
+      const cancelDeleteButton = document.getElementById(
+        "cancel-delete-button"
+      );
+      const urlParams = new URLSearchParams(window.location.search);
+      const articleId = urlParams.get("ArticleId");
+
+      if (!articleId) {
+        console.error("記事IDが指定されていません。");
+        messageArea.innerHTML = `<p style="color:red;">記事IDが指定されていません。</p>`;
+        setTimeout(() => {
+          window.location.href = "/top2.html";
+        }, 1000);
+      }
+
+      const deleteApi = async (url) => {
+        const responce = fetch(url, {
+          method: "DELETE",
+        });
+      };
+
+      const handleDeleteConfirm = async () => {
+        if (!articleId) {
+          console.error("記事IDが不明なため削除できません。");
+          messageArea.innerHTML = `<p style="color:red;">記事IDが不明なため削除できません。</p>`;
+          return;
+        }
+
+        try {
+          await deleteApi(DELETE_ARTICLE_URL);
+          console.log(`記事 (ID: ${articleId}) の削除成功。`);
+          setTimeout(() => {
+            window.location.href = "/top2.html";
+          }, 1000);
+        } catch (error) {
+          console.error(
+            `記事 (ID: ${articleId}) の削除処理中にエラー:`,
+            error.message
+          );
+          messageArea.innerHTML = `<p style="color:red;">記事の削除に失敗しました。</p>`;
+        }
+      };
+
+      const DELETE_ARTICLE_URL = `${API_BASE_URL}/${ARTICLE_PATH}/${articleId}`;
+      confirmDeleteButton.addEventListener("click", handleDeleteConfirm);
+
+      const CANCEL_URL = `/detail2.html?ArticleId=${articleId}`;
+      cancelDeleteButton.addEventListener("click", () => {
+        window.location.href = CANCEL_URL;
+      });
+    </script>
+  </body>
+</html>

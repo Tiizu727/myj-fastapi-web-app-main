@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="ja">
+  <head>
+    <meta charset="UTF-8" />
+    <title>練習ページ</title>
+    <link rel="stylesheet" href="/css/general.css" />
+  </head>
+  <body>
+    <p>GETでアクセスし，複数の返答をもらう(JSON形式)</p>
+
+    <div id="message-area">
+      <!-- ここにメッセージが出る -->
+    </div>
+
+    <script>
+      const messageArea = document.getElementById("message-area");
+      const API_HOST = "http://localhost:8000";
+      const ENDPOINT = "/getmulti";
+      const URL = `${API_HOST}${ENDPOINT}`;
+
+      fetch(URL)
+        .then((response) => {
+          if (!response.ok) {
+            throw new Error(`HTTPエラー! ステータス: ${response.status}`);
+          }
+          return response.json();
+        })
+        .then((jsonObj) => {
+          messageArea.innerHTML = jsonObj
+            .map((item) => `<p>${item.message}</p>`)
+            .join("");
+        })
+        .catch((error) => {
+          console.error("エラー:", error);
+          messageArea.innerHTML = `<p style="color:red;">データ取得に失敗しました。<br>${error.message}</p>$`;
+        });
+    </script>
+  </body>
+</html>

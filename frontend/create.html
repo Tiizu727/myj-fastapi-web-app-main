@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="ja">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>マイクロブログ 新記事追加</title>
+    <link rel="stylesheet" href="/css/general.css" />
+    <script type="text/javascript" src="/js/general.js"></script>
+    <script type="text/javascript" src="/js/api.js"></script>
+  </head>
+
+  <body>
+    <div class="container">
+      <h1>マイクロブログ</h1>
+
+      <br />
+      <h2>新しい記事を作成</h2>
+
+      <form id="create-article-form">
+        <div>
+          <label for="create-title">タイトル:</label>
+          <input type="text" id="create-title" name="title" required />
+        </div>
+        <div>
+          <label for="create-body">本文:</label>
+          <textarea id="create-body" name="body" rows="4" required></textarea>
+        </div>
+        <div>
+          <label for="create-user-id">ユーザーID:</label>
+          <input id="create-user-id" name="user_id" required />
+        </div>
+        <button type="submit">作成</button>
+      </form>
+    </div>
+
+    <script>
+      const API_BASE_URL = "http://localhost:8000";
+      const POST_ARTICLES_ENDPOINT = "/article";
+      const POST_URL = `${API_BASE_URL}${POST_ARTICLES_ENDPOINT}`;
+
+      const form = document.getElementById("create-article-form");
+      const titleInput = document.getElementById("create-title");
+      const bodyInput = document.getElementById("create-body");
+      const userIdInput = document.getElementById("create-user-id");
+      const messageArea = document.getElementById("message-area");
+
+      const postApi = (url, data) => {
+        return fetch(url, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(data),
+        })
+          .then((response) => {
+            if (!response.ok) {
+              throw new Error(`HTTPエラー! ステータス: ${response.status}`);
+            }
+            return response.json();
+          })
+          .catch((error) => {
+            console.error("エラー:", error);
+            messageArea.innerHTML = `<p style="color:red;">データ取得に失敗しました。<br>${error.message}</p>`;
+            throw error; // 例外を再スローする
+          });
+      };
+
+      const handleFormSubmit = async (event) => {
+        // デフォルトの送信をキャンセル
+        event.preventDefault();
+
+        const title = titleInput.value;
+        const body = bodyInput.value;
+        const userId = userIdInput.value;
+
+        const data = {
+          title: title,
+          body: body,
+          user_id: userId,
+        };
+
+        try {
+          const response = await postApi(POST_URL, data);
+          console.log("記事作成成功:", response); // ログには残す
+          console.log("top2.html へ遷移します...");
+          window.location.href = "/top2.html";
+        } catch (error) {
+          console.error("エラー:", error);
+        }
+      };
+
+      // フォームの送信イベントをリスン ⇒
+      form.addEventListener("submit", handleFormSubmit);
+    </script>
+  </body>
+</html>

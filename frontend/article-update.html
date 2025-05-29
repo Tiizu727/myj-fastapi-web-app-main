@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="ja">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>マイクロブログ 記事修正</title>
+    <link rel="stylesheet" href="/css/general.css" />
+    <script type="text/javascript" src="/js/general.js"></script>
+    <script type="text/javascript" src="/js/api.js"></script>
+  </head>
+  <body>
+    <div class="container">
+      <h1>マイクロブログ</h1>
+      <br />
+      <h2>記事を修正</h2>
+      <div id="message-area"></div>
+
+      <form id="modify-article-form">
+        <input type="hidden" id="modify-article-id" name="article_id" />
+        <div>
+          <label for="modify-title">タイトル:</label>
+          <input type="text" id="modify-title" name="title" required />
+          <br />
+          <label for="modify-body">本文:</label>
+          <textarea id="modify-body" name="body" rows="4" required></textarea>
+          <!-- <br />
+          <label for="modify-user-id">ユーザーID:</label>
+          <input id="modify-user-id" name="user_id" required /> -->
+        </div>
+        <button type="submit">更新</button>
+      </form>
+      <div class="actions">
+        <a href="/index.html">一覧へ戻る</a>
+      </div>
+    </div>
+  </body>
+  <script>
+    if (!checkLogin()) {
+      handleLoginError();
+    }
+
+    const API_BASE_URL = "http://localhost:8000";
+    const ARTICLE_PATH = "article";
+
+    const form = document.getElementById("modify-article-form");
+    const articleIdInput = document.getElementById("modify-article-id");
+    const titleInput = document.getElementById("modify-title");
+    const bodyInput = document.getElementById("modify-body");
+    // const userIdInput = document.getElementById("modify-user-id");
+    const messageArea = document.getElementById("message-area");
+
+    const urlParams = new URLSearchParams(window.location.search);
+    const articleId = urlParams.get("ArticleId");
+
+    const moveToTop = () => {
+      setTimeout(() => {
+        window.location.href = "/index.html";
+      }, 1000);
+    };
+
+    if (!articleId) {
+      console.error("記事IDが指定されていません。");
+      messageArea.innerHTML = `<p style="color:red;">記事IDが指定されていません。</p>`;
+      moveToTop();
+    } else {
+      const MODIFY_ARTICLE_URL = `${API_BASE_URL}/${ARTICLE_PATH}/${articleId}`;
+
+      fetch(MODIFY_ARTICLE_URL, {
+        method: "GET",
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem("token")}`,
+        },
+      })
+        .then((response) => {
+          if (!response.ok) {
+            throw new Error(
+              `記事の取得に失敗しました。ステータス: ${response.status}`
+            );
+          }
+          return response.json();
+        })
+        .then((article) => {
+          titleInput.value = article.title;
+          bodyInput.value = article.body;
+          // userIdInput.value = article.user_id;
+        })
+        .catch((error) => {
+          console.error("記事取得エラー:", error.message);
+          messageArea.innerHTML = `<p style="color:red;">記事情報の取得に失敗</p>`;
+          moveToTop();
+        });
+    }
+
+    const putApi = (url, data) => {
+      const response = fetch(url, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${localStorage.getItem("token")}`,
+        },
+        body: JSON.stringify(data),
+      })
+        .then((response) => {
+          if (!response.ok) {
+            throw new Error(`HTTPエラー! ステータス: ${response.status}`);
+          }
+          return response.json();
+        })
+        .catch((error) => {
+          console.error("エラー:", error);
+          messageArea.innerHTML = `<p style="color:red;">データ更新に失敗しました。<br>${error.message}</p>`;
+          throw error; // 例外を再スローする
+        });
+    };
+
+    const handleFormSubmit = async (event) => {
+      event.preventDefault();
+
+      if (!articleId) {
+        console.error("フォーム送信試行エラー: 記事IDがありません。");
+        messageArea.innerHTML = `<p style="color:red;">記事IDが不明なため更新できません。</p>`;
+        return;
+      }
+      const MODIFY_ARTICLE_URL = `${API_BASE_URL}/${ARTICLE_PATH}/${articleId}`;
+
+      const title = titleInput.value;
+      const body = bodyInput.value;
+      // const userId = userIdInput.value;
+
+      const data = {
+        title: title,
+        body: body,
+        // user_id: userId,
+      };
+
+      try {
+        const response = await putApi(MODIFY_ARTICLE_URL, data);
+        console.log("記事修正成功:", response);
+        window.location.href = `/article-detail.html?ArticleId=${articleId}`;
+      } catch (error) {
+        console.error("フォーム送信エラー（記事修正失敗）:", error.message);
+        messageArea.innerHTML = `<p style="color:red;">記事の更新に失敗</p>`;
+      }
+    };
+
+    form.addEventListener("submit", handleFormSubmit);
+  </script>
+</html>

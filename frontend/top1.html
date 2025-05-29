@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="ja">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>マイクロブログ 記事一覧</title>
+    <link rel="stylesheet" href="/css/general.css" />
+    <script type="text/javascript" src="/js/general.js"></script>
+    <script type="text/javascript" src="/js/api.js"></script>
+  </head>
+
+  <body>
+    <div class="container">
+      <h1>マイクロブログ</h1>
+
+      <br />
+      <a href="/create.html">新規作成</a>
+      <br />
+
+      <h2>記事一覧</h2>
+      <div id="articles-list">
+        <!-- ここにメッセージが出る -->
+      </div>
+    </div>
+
+    <script>
+      const API_BASE_URL = "http://localhost:8000";
+      const ARTICLES_ENDPOINT = "articles";
+      const ARTICLES_URL = `${API_BASE_URL}/${ARTICLES_ENDPOINT}`;
+      const articlesList = document.getElementById("articles-list");
+
+      fetch(ARTICLES_URL)
+        .then((response) => {
+          if (!response.ok) {
+            throw new Error(`HTTPエラー! ステータス: ${response.status}`);
+          }
+          return response.json();
+        })
+        .then((jsonObj) => {
+          articlesList.innerHTML = jsonObj
+            .map((item) => `<p>${item.title}</p>`)
+            .join("");
+        })
+        .catch((error) => {
+          console.error("エラー:", error);
+          articlesList.innerHTML = `<p style="color:red;">データ取得に失敗しました。<br>${error.message}</p>$`;
+        });
+    </script>
+  </body>
+</html>

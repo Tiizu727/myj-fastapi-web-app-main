@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="ja">
+  <head>
+    <meta charset="UTF-8" />
+    <title>練習ページ</title>
+    <link rel="stylesheet" href="/css/general.css" />
+  </head>
+  <body>
+    <p>POSTでアクセスし，ひとつの返答をもらう(JSON形式)</p>
+
+    <div>
+      <label for="first">ひとつめ（文字列）: </label>
+      <input type="text" id="first" name="first_text" required />
+      <br />
+      <label for="second">ふたつめ（文字列）: </label>
+      <input type="text" id="second" name="second_text" required />
+    </div>
+    <button type="button" onClick="postTestApi()">Post!</button>
+
+    <div id="message-area">
+      <!-- ここにメッセージが出る -->
+    </div>
+
+    <script>
+      // 要素取得
+      const FBOX = document.getElementById("first");
+      const SBOX = document.getElementById("second");
+      const messageArea = document.getElementById("message-area");
+
+      // APIエンドポイント
+      const API_HOST = "http://localhost:8000";
+      const ENDPOINT = "/posttest";
+      const URL = `${API_HOST}${ENDPOINT}`;
+
+      // POSTリクエスト関数 (修正)
+      const postApi = (URL, data) => {
+        return fetch(URL, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(data),
+        })
+          .then((response) => {
+            if (!response.ok) {
+              throw new Error(`HTTPエラー! ステータス: ${response.status}`);
+            }
+            return response.json();
+          })
+          .catch((error) => {
+            console.error("エラー:", error);
+            messageArea.innerHTML = `<p style="color:red;">データ取得に失敗しました。<br>${error.message}</p>`;
+            throw error; // 例外を再スローする
+          });
+      };
+
+      // ボタン押下時の処理関数
+      const postTestApi = async () => {
+        let FTEXT = FBOX.value;
+        let STEXT = SBOX.value;
+
+        const data = {
+          ft: FTEXT,
+          st: STEXT,
+        };
+
+        try {
+          const response = await postApi(URL, data);
+
+          if (response.reply) {
+            messageArea.innerHTML = `<p>${response.reply}</p>`;
+          } else {
+            messageArea.innerHTML = `<p style="color:red;">サーバーから予期しないレスポンスが返されました。</p>`;
+            console.error("Unexpected response:", response);
+          }
+        } catch (error) {
+          console.error("エラー:", error);
+        }
+
+        // 入力欄をリセット
+        FBOX.value = "";
+        SBOX.value = "";
+      };
+    </script>
+  </body>
+</html>
