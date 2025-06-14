@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="ja">
+  <head>
+    <meta charset="UTF-8" />
+    <title>商品一覧</title>
+    <!-- cssファイルをimport -->
+    <link rel="stylesheet" href="/css/general.css" />
+  </head>
+
+  <body>
+    <h2>商品一覧</h2>
+    <table id="products-list">
+      <!-- ここにタスクが入る -->
+    </table>
+
+    <script>
+      const API_BASE_URL = "http://localhost:8000";
+      const PRODUCTS_ENDPOINT = "products-all";
+      const PRODUCTS_URL = `${API_BASE_URL}/${PRODUCTS_ENDPOINT}`;
+      const productsList = document.getElementById("products-list");
+
+      fetch(PRODUCTS_URL, {
+        method: "GET",
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem("token")}`,
+        },
+      })
+        .then((response) => {
+          if (!response.ok) {
+            throw new Error(`HTTPエラー! ステータス: ${response.status}`);
+          }
+          return response.json();
+        })
+        .then((jsonObj) => {
+          productsList.innerHTML = `
+        <tr>
+        <th>商品ID</th>
+        <th>メーカー</th>
+        <th>商品名</th>
+        <th>商品画像</th>
+        <th>情報</th>
+        <th>カテゴリ</th>
+        </tr>
+        `;
+          jsonObj.forEach((product) => {
+            const productDiv = document.createElement("tr");
+            productDiv.innerHTML = `
+            <th>${product.id}</th>
+            <th>${product.maker}</th>
+            <th>${product.name}</th>
+            <th><img src="${product.image_url}" alt="${product.name}" style="width: 100px; height: auto;"></th>
+            <th><a href="${product.information_url}">ココ</a></th>
+            <th>${product.category}</th>
+          `;
+            productsList.appendChild(productDiv);
+          });
+        })
+        .catch((error) => {
+          console.error("エラー:", error);
+          productsList.innerHTML = `<p style="color:red;">データ取得に失敗しました。<br>${error.message}</p>$`;
+        });
+    </script>
+  </body>
+</html>

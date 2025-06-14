@@ -2,78 +2,20 @@
 <html lang="ja">
   <head>
     <meta charset="UTF-8" />
-    <title>トップページ | マイクロブログ</title>
+    <title>トップページ</title>
     <!-- cssファイルをimport -->
     <link rel="stylesheet" href="/css/general.css" />
-
-    <!-- jsファイルをimport -->
-    <script type="text/javascript" src="/js/general.js"></script>
-    <script type="text/javascript" src="/js/api.js"></script>
   </head>
 
   <body>
     <div>
       <h1 id="welcome"></h1>
-      <button onclick="logout()">ログアウト</button>
     </div>
 
-    <h2>記事一覧</h2>
-    <a href="/article-create.html">
-      <button>記事を作成</button>
-    </a>
-
-    <div id="articles-list">
-      <!-- ここにタスクが入る -->
-    </div>
-
-    <script>
-      // ログインしていない場合、ログインページに移動
-      if (!checkLogin()) {
-        handleLoginError();
-      }
-
-      // ユーザー情報を取得
-      getMeApi().then((data) => {
-        console.log("data:", data);
-        const welcomeH1 = document.getElementById("welcome");
-        welcomeH1.innerText = `ようこそ、${data.nickname}さん`;
-      });
-
-      const API_BASE_URL = "http://localhost:8000";
-      const ARTICLES_ENDPOINT = "articles";
-      const ARTICLES_URL = `${API_BASE_URL}/${ARTICLES_ENDPOINT}`;
-      const articlesList = document.getElementById("articles-list");
-
-      fetch(ARTICLES_URL, {
-        method: "GET",
-        headers: {
-          Authorization: `Bearer ${localStorage.getItem("token")}`,
-        },
-      })
-        .then((response) => {
-          if (!response.ok) {
-            throw new Error(`HTTPエラー! ステータス: ${response.status}`);
-          }
-          return response.json();
-        })
-        .then((jsonObj) => {
-          articlesList.innerHTML = ""; // 既存の内容をクリア
-          jsonObj.forEach((article) => {
-            const articleDiv = document.createElement("div");
-            articleDiv.innerHTML = `
-              <a href="/article-detail.html?ArticleId=${article.id}">
-              ${article.title}
-              </a>  
-              ユーザーID: ${article.user_id}  
-              投稿日: ${article.regist_date}
-          `;
-            articlesList.appendChild(articleDiv);
-          });
-        })
-        .catch((error) => {
-          console.error("エラー:", error);
-          articlesList.innerHTML = `<p style="color:red;">データ取得に失敗しました。<br>${error.message}</p>$`;
-        });
-    </script>
+    <h2>商品表示</h2>
+    <a href="/display.html">商品一覧ページへ</a>
+    <h2>パーツを選ぶ</h2>
+    <a href="/cpu.html">CPUから選ぶ</a>
+    <a href="/gpu.html">GPUから選ぶ</a>
   </body>
 </html>
