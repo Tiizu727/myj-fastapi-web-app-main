@@ -41,3 +41,17 @@ def get_cpu_by_maker(maker: str, db: Session):
     print(f"DB操作の結果: {result}")
 
     return result
+
+def get_product_by_id(id: int, db: Session):
+    sql = text(
+        """
+        SELECT * FROM products
+        WHERE id = :id
+        """
+    )
+
+    print(f"SQL: {sql}")
+    result = db.execute(sql, {"id": id}).mappings().all()
+    print(f"DB操作の結果: {result}")
+
+    return result

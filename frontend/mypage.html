@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="ja">
+
+<head>
+  <meta charset="UTF-8">
+  <title>マイページ</title>
+  <!-- cssファイルをimport -->
+  <link rel="stylesheet" href="/css/general.css">
+
+  <!-- jsファイルをimport -->
+  <script type="text/javascript" src="/js/general.js"></script>
+  <script type="text/javascript" src="/js/api.js"></script>
+</head>
+
+<body>
+  <div>
+    <h1 id="welcome"></h1>
+    <button onclick="logout()">ログアウト</button>
+  </div>
+
+  <h2>構成一覧</h2>
+  <a href="/index.html">
+    <button>パソコンを構築</button>
+  </a>
+
+  <div id="pc-list">
+    <!-- ここにタスクが入る -->
+  </div>
+
+</body>
+
+<script>
+  // ログインしていない場合、ログインページに移動
+  if (!checkLogin()) {
+    handleLoginError()
+  }
+
+
+  // ユーザー情報を取得
+  getMeApi().then(data => {
+    // console.log("data:", data)
+    const welcomeH1 = document.getElementById('welcome')
+    welcomeH1.innerText = `ようこそ、${data.nickname}さん`
+  })
+
+  // タスク一覧を取得
+  getAllPcApi()
+    .then((data) => {
+      const pcList = document.getElementById('pc-list')
+      data.forEach(pc => {
+        const pcDiv = document.createElement('div')
+        pcDiv.innerHTML = `
+      <a href="/build.html?buildId=${pc.id}">
+        ${pc.name}
+      </a>
+      `
+        pcList.appendChild(pcDiv)
+      })
+    })
+
+</script>
+
+</html>

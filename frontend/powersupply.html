@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="ja">
+  <head>
+    <meta charset="UTF-8" />
+    <title>商品一覧</title>
+    <!-- cssファイルをimport -->
+    <link rel="stylesheet" href="/css/general.css" />
+  </head>
+
+  <body>
+    <h2>電源ユニット一覧</h2>
+    <table id="product-list">
+      <!-- ここにタスクが入る -->
+    </table>
+
+    <script>
+        localStorage.removeItem("psu")
+        const id = {
+            cpu: localStorage.getItem("cpu"),
+            gpu: localStorage.getItem("gpu"),
+            memory: localStorage.getItem("memory"),
+            storage: localStorage.getItem("storage"),
+            mb: localStorage.getItem("mb"),
+            cooler: localStorage.getItem("cooler")
+        }
+
+        const API_BASE_URL = "http://localhost:8000";
+        let total = 6;
+
+        async function calculateTotalTDP() {
+        const parts = Object.entries(id);
+        const results = await Promise.all(
+            parts.map(async ([part, partId]) => {
+            if (!partId) return 0;
+            const ENDPOINT = `tdp/${partId}`;
+            const DB_URL = `${API_BASE_URL}/${ENDPOINT}`;
+            try {
+                const res = await fetch(DB_URL, {
+                method: "GET",
+                headers: {
+                    Authorization: `Bearer ${localStorage.getItem("token")}`,
+                },
+                });
+                if (!res.ok) throw new Error(`HTTP error ${res.status}`);
+                const json = await res.json();
+                return json;
+            } catch (e) {
+                console.error(`Error fetching ${part}:`, e);
+                return 0;
+            }
+            })
+        );
+        return results.reduce((sum, val) => sum + val, 0) * 2;
+        }
+
+        (async () => {
+        total = await calculateTotalTDP();
+
+        let ENDPOINT = `psu-with/${total}`;
+        const DB_URL = `${API_BASE_URL}/${ENDPOINT}`;
+        const productsList = document.getElementById("product-list");
+
+        fetch(DB_URL, {
+            method: "GET",
+            headers: {
+                Authorization: `Bearer ${localStorage.getItem("token")}`,
+            },
+        })
+        .then((response) => {
+            if (!response.ok) {
+                throw new Error(`HTTPエラー! ステータス: ${response.status}`);
+            }
+            return response.json();
+        })
+        .then((jsonObj) => {
+            if (Object.keys(jsonObj).length == 0) {
+                productsList.innerHTML = "該当なし";
+            } else {
+                productsList.innerHTML = `
+                    <tr>
+                    <th>メーカー</th>
+                    <th>商品名</th>
+                    <th>商品画像</th>
+                    <th>情報</th>
+                    <th>容量</th>
+                    <th>80PLUS認証</th>
+                    <th>フルプラグイン</th>
+                    <th>選択</th>
+                    </tr>
+                `;
+                jsonObj.forEach((product) => {
+                    const productDiv = document.createElement("tr");
+                    productDiv.innerHTML = `
+                        <th>${product.maker}</th>
+                        <th>${product.name}</th>
+                        <th><img src="${product.image_url}" alt="${product.name}" style="width: 100px; height: auto;"></th>
+                        <th><a href="${product.information_url}">ココ</a></th>
+                        <th>${product.wattage}W</th>
+                        <th>${product.efficiency_rating}</th>
+                        <th>${product.modular == 1 ? `〇` : "×"}</th>
+                        <th><button onclick="move(${product.id})">選択</button></th>
+                    `;
+                    productsList.appendChild(productDiv);
+                });
+            }
+        })
+        .catch((error) => {
+            console.error("エラー:", error);
+            productsList.innerHTML = `<p style="color:red;">データ取得に失敗しました。<br>${error.message}</p>`;
+        });})();
+
+        function move(id){
+            localStorage.setItem("psu", id)
+            location.href = "/case.html"
+        }
+    </script>
+  </body>
+</html>

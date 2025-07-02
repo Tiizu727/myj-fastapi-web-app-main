@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="ja">
+	<head>
+		<meta charset="UTF-8" />
+		<title>商品一覧</title>
+		<!-- cssファイルをimport -->
+		<link rel="stylesheet" href="/css/general.css" />
+	</head>
+
+	<body>
+		<h2>あなたの構成</h2>
+		<table id="product-list">
+			<!-- ここにタスクが入る -->
+		</table>
+		<button onclick="move()">保存</button>
+		<script>
+			const params = new URLSearchParams(window.location.search);
+
+			const API_BASE_URL = "http://localhost:8000";
+			const productsList = document.getElementById("product-list");
+			productsList.innerHTML = `
+            <tr>
+                <th>メーカー</th>
+                <th>商品名</th>
+                <th>商品画像</th>
+                <th>情報</th>
+            </tr>
+            `;
+
+			const ids = [
+				localStorage.getItem("cpu"),
+				localStorage.getItem("gpu"),
+				localStorage.getItem("memory"),
+				localStorage.getItem("storage"),
+				localStorage.getItem("mb"),
+				localStorage.getItem("cooler"),
+				localStorage.getItem("psu"),
+				localStorage.getItem("case"),
+				localStorage.getItem("os")
+			].filter((id) => id && id !== "null" && id !== "undefined");
+
+			async function fetchProductsInOrder(ids) {
+				for (const id of ids) {
+					const ENDPOINT = `product-by-id/${id}`;
+					const DB_URL = `${API_BASE_URL}/${ENDPOINT}`;
+					try {
+						const response = await fetch(DB_URL, {
+							method: "GET",
+							headers: {
+								Authorization: `Bearer ${localStorage.getItem("token")}`,
+							},
+						});
+						if (!response.ok) {
+							throw new Error(`HTTPエラー! ステータス: ${response.status}`);
+						}
+						const jsonObj = await response.json();
+						if (Object.keys(jsonObj).length == 0) {
+							productsList.innerHTML += "<tr><td colspan='4'>該当なし</td></tr>";
+						} else {
+							(jsonObj.length ? jsonObj : [jsonObj]).forEach((product) => {
+								const productDiv = document.createElement("tr");
+								productDiv.innerHTML = `
+                            <th>${product.maker}</th>
+                            <th>${product.name}</th>
+                            <th><img src="${product.image_url}" alt="${product.name}" style="width: 100px; height: auto;"></th>
+                            <th><a href="${product.information_url}">ココ</a></th>
+                        `;
+								productsList.appendChild(productDiv);
+							});
+						}
+					} catch (error) {
+						console.error("エラー:", error);
+						productsList.innerHTML += `<tr><td colspan='4' style="color:red;">データ取得に失敗しました。<br>${error.message}</td></tr>`;
+					}
+				}
+			}
+
+			fetchProductsInOrder(ids);
+
+			function move() {
+				location.href = `./save-build.html`;
+			}
+		</script>
+	</body>
+</html>

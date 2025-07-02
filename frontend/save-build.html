@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="ja">
+	<head>
+		<meta charset="UTF-8" />
+		<title>トップページ | マイクロブログ</title>
+		<!-- cssファイルをimport -->
+		<link rel="stylesheet" href="/css/general.css" />
+
+		<!-- jsファイルをimport -->
+		<script type="text/javascript" src="/js/general.js"></script>
+		<script type="text/javascript" src="/js/api.js"></script>
+	</head>
+
+	<body>
+		<div>
+			<p>保存しています...</p>
+		</div>
+
+		<script>
+			// ログインしていない場合、ログインページに移動
+			if (!checkLogin()) {
+				handleLoginError();
+			} else {
+				const name = prompt(
+					"保存する構成の名前を入力してください。(100字以内)",
+					"My PC Build"
+				);
+
+				getMeApi().then((data) => {
+					const user_id = data.id;
+
+					const ids = [
+						localStorage.getItem("cpu"),
+						localStorage.getItem("gpu"),
+						localStorage.getItem("memory"),
+						localStorage.getItem("storage"),
+						localStorage.getItem("mb"),
+						localStorage.getItem("cooler"),
+						localStorage.getItem("psu"),
+						localStorage.getItem("case"),
+						localStorage.getItem("os"),
+						user_id,
+						name,
+					].filter((id) => id && id !== "null" && id !== "undefined");
+					saveBuildApi(ids)
+						.then((response) => {
+							if (response.status === 200) {
+								alert("保存が完了しました。");
+								window.location.href = "/mypage.html";
+							} else {
+								alert("保存に失敗しました。もう一度お試しください。");
+							}
+						})
+						.catch((error) => {
+							console.error("エラー:", error);
+							alert("保存中にエラーが発生しました。コンソールを確認してください。");
+						});
+				});
+			}
+		</script>
+	</body>
+</html>

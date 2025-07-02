@@ -8,17 +8,15 @@
   </head>
 
   <body>
-    <h2>GPU一覧</h2>
+    <h2>ストレージ一覧</h2>
     <table id="product-list">
       <!-- ここにタスクが入る -->
     </table>
 
     <script>
-      localStorage.removeItem("memory")
-      const cpu_id = localStorage.getItem("cpu")
-
+      localStorage.removeItem("storage")
       const API_BASE_URL = "http://localhost:8000";
-      let ENDPOINT = `memory-with/${cpu_id}`;
+      let ENDPOINT = `storage-all`;
 
       const DB_URL = `${API_BASE_URL}/${ENDPOINT}`;
       const productsList = document.getElementById("product-list");
@@ -45,12 +43,11 @@
                 <th>商品名</th>
                 <th>商品画像</th>
                 <th>情報</th>
-                <th>搭載チップ</th>
-                <th>メモリータイプ</th>
+                <th>ストレージタイプ</th>
+                <th>インターフェース</th>
                 <th>容量</th>
-                <th>メモリ速度</th>
-                <th>枚数</th>
-                <th>TDP</th>
+                <th>読み込み速度</th>
+                <th>書き込み速度</th>
                 <th>選択</th>
                 </tr>
                 `;
@@ -61,12 +58,11 @@
                     <th>${product.name}</th>
                     <th><img src="${product.image_url}" alt="${product.name}" style="width: 100px; height: auto;"></th>
                     <th><a href="${product.information_url}">ココ</a></th>
-                    <th>${product.chipset_id}</th>
-                    <th>${product.memory_type}</th>
+                    <th>${product.storage_type == "M2" ? `M.2` : `${product.storage_type}`}</th>
+                    <th>${product.storage_type == "M2" ? `Type${product.interface}` : `${product.interface}`}</th>
                     <th>${product.capacity_gb}</th>
-                    <th>${product.speed_mhz} MHz</th>
-                    <th>${product.module_count}枚</th>
-                    <th>${product.tdp}W</th>
+                    <th>${product.read_speed} MHz</th>
+                    <th>${product.write_speed} MHz</th>
                     <th><button onclick="move(${product.id})">選択</button></th>
                     `;
                     productsList.appendChild(productDiv);
@@ -78,9 +74,9 @@
           productsList.innerHTML = `<p style="color:red;">データ取得に失敗しました。<br>${error.message}</p>`;
         });
 
-        function move(id){
-          localStorage.setItem("memory", id)
-          location.href = "/storage.html"
+        function move(id) {
+          localStorage.setItem("storage", id)
+          location.href = "/motherboard.html";
         }
     </script>
   </body>

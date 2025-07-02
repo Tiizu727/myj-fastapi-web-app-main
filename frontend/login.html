@@ -3,7 +3,7 @@
 
 <head>
   <meta charset="UTF-8">
-  <title>ログイン | TODOアプリ</title>
+  <title>ログイン</title>
   <!-- cssファイルをimport -->
   <link rel="stylesheet" href="/css/general.css">
 
@@ -57,7 +57,7 @@
     // APIにリクエストを送信
     loginApi(email, password)
       .then((data) => {
-        location.href = '/index.html'
+        location.href = '/save-build.html'
       })
       .catch((error) => {
         megsBox.innerText = error.message

@@ -8,28 +8,22 @@
 	</head>
 
 	<body>
-		<h2>CPU一覧</h2>
-		<table id="cpu-list">
+		<h2>GPU一覧</h2>
+		<table id="gpu-list">
 			<!-- ここにタスクが入る -->
 		</table>
 
 		<script>
-			localStorage.removeItem("cpu")
-			const gpu_id = localStorage.getItem("gpu");
-
+			const params = new URLSearchParams(window.location.search);
+            const game_id = params.get("game");
+            
 			const API_BASE_URL = "http://localhost:8000";
-			let CPU_ENDPOINT, showEvaluation;
-			if (gpu_id) {
-				CPU_ENDPOINT = `cpu-with/${gpu_id}`;
-				showEvaluation = true;
-			} else {
-				CPU_ENDPOINT = "cpu-all";
-				showEvaluation = false;
-			}
-			const CPU_URL = `${API_BASE_URL}/${CPU_ENDPOINT}`;
-			const productsList = document.getElementById("cpu-list");
+			let ENDPOINT = "";
 
-			fetch(CPU_URL, {
+			const GPU_URL = `${API_BASE_URL}/${ENDPOINT}`;
+			const productsList = document.getElementById("gpu-list");
+
+			fetch(GPU_URL, {
 				method: "GET",
 				headers: {
 					Authorization: `Bearer ${localStorage.getItem("token")}`,
@@ -48,26 +42,18 @@
         <th>商品名</th>
         <th>商品画像</th>
         <th>情報</th>
-        <th>ソケットタイプ</th>
-        <th>コア数</th>
-        <th>スレッド数</th>
+        <th>搭載チップ</th>
+        <th>インターフェース</th>
+        <th>VRAM</th>
         <th>クロック周波数</th>
+        <th>サイズ(幅×高さ×厚さ)</th>
+        <th>画面出力</th>
         <th>TDP</th>
-        ${showEvaluation ? "<th>評価</th>" : ""}
         <th>選択</th>
         </tr>
         `;
 					jsonObj.forEach((product) => {
-						let evaluMark = "";
-						if (showEvaluation) {
-							evaluMark = "×";
-							if (product.evaluation >= 0.8) {
-								evaluMark = "〇";
-							} else if (product.evaluation >= 0.6) {
-								evaluMark = "－";
-							}
-						}
-
+						let linkUrl = `/cpu.html?g=${product.id}`;
 						const productDiv = document.createElement("tr");
 						productDiv.innerHTML = `
             <th>${product.maker}</th>
@@ -76,30 +62,23 @@
 							product.name
 						}" style="width: 100px; height: auto;"></th>
             <th><a href="${product.information_url}">ココ</a></th>
-            <th>${product.socket_type}</th>
-            <th>${product.core}</th>
-            <th>${product.thread}</th>
+            <th>${product.chipset_id}</th>
+            <th>${product.interface}</th>
+            <th>${product.vram}</th>
             <th>ベース:${product.base_clock} GHz<br>ブースト:${product.boost_clock} GHz</th>
-            <th>${product.tdp} W</th>
+            <th>${product.width}mm×${product.height}mm×${product.depth}mm</th>
+            <th>HDMI×${product.HDMI}<br>DisplayPort×${product.DP}</th>
+            <th>${product.tdp}W</th>
             ${showEvaluation ? `<th>${evaluMark}</th>` : ""}
-            <th><button onclick="move(${product.id})">選択</button></th>
+            <th><button onclick="location.href='${linkUrl}'">選択</button></th>
           `;
 						productsList.appendChild(productDiv);
 					});
 				})
 				.catch((error) => {
 					console.error("エラー:", error);
-					productsList.innerHTML = `<p style="color:red;">データ取得に失敗しました。<br>${error.message}</p>$`;
+					productsList.innerHTML = `<p style="color:red;">データ取得に失敗しました。<br>${error.message}</p>`;
 				});
-
-			function move(id) {
-        localStorage.setItem("cpu", id);
-				if (gpu_id) {
-					location.href = "/memory.html";
-				} else {
-					location.href = "/gpu.html";
-				}
-			}
 		</script>
 	</body>
 </html>
