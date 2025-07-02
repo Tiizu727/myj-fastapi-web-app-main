@@ -2,7 +2,7 @@ const API_HOST = 'http://localhost:8000'
 
 const logout = () => {
   localStorage.removeItem('token')
-  location.href = '/login.html'
+  location.href = `/login.html`
 }
 
 const handleLoginError = () => {
