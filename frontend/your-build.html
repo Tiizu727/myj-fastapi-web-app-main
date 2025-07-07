@@ -2,84 +2,230 @@
 <html lang="ja">
 	<head>
 		<meta charset="UTF-8" />
-		<title>商品一覧</title>
+		<title>あなたの構成</title>
 		<!-- cssファイルをimport -->
 		<link rel="stylesheet" href="/css/general.css" />
 	</head>
 
 	<body>
-		<h2>あなたの構成</h2>
-		<table id="product-list">
-			<!-- ここにタスクが入る -->
-		</table>
-		<button onclick="move()">保存</button>
+		<div class="header">
+			<div class="header-content">
+				<img src="/img/logo.png" alt="Logo" class="logo" />
+				<a href="/index.html" class="site-title-link">
+					<h1 class="site-title">だれでも自作PCナビ</h1>
+				</a>
+			</div>
+		</div>
+		
+		<div class="main-container">
+			<div class="page-header">
+				<h1 class="page-title">あなたのPC構成</h1>
+				<p class="page-subtitle">選択したパーツの構成をご確認ください</p>
+			</div>
+			
+			<div class="build-summary">
+				<div class="build-summary-header">
+					<h2>構成一覧</h2>
+					<div class="build-status">
+						<span class="status-indicator" id="status-indicator">構成チェック中...</span>
+					</div>
+				</div>
+				
+				<div class="build-grid" id="product-list">
+					<!-- ここに構成パーツが入る -->
+				</div>
+				
+				<div class="build-actions">
+					<button onclick="move()" class="save-button">
+						<i class="icon">💾</i>
+						構成を保存
+					</button>
+					<button onclick="startOver()" class="restart-button">
+						<i class="icon">🔄</i>
+						最初からやり直す
+					</button>
+				</div>
+			</div>
+		</div>
+
 		<script>
 			const params = new URLSearchParams(window.location.search);
-
 			const API_BASE_URL = "http://localhost:8000";
 			const productsList = document.getElementById("product-list");
-			productsList.innerHTML = `
-            <tr>
-                <th>メーカー</th>
-                <th>商品名</th>
-                <th>商品画像</th>
-                <th>情報</th>
-            </tr>
-            `;
+			const statusIndicator = document.getElementById("status-indicator");
+			
+			// パーツカテゴリと表示名のマッピング
+			const partCategories = {
+				cpu: { name: "CPU", icon: "🧠" },
+				gpu: { name: "GPU", icon: "🎮" },
+				memory: { name: "メモリ", icon: "💾" },
+				storage: { name: "ストレージ", icon: "💿" },
+				mb: { name: "マザーボード", icon: "🔧" },
+				cooler: { name: "クーラー", icon: "❄️" },
+				psu: { name: "電源ユニット", icon: "⚡" },
+				case: { name: "ケース", icon: "📦" },
+				os: { name: "OS", icon: "💻" }
+			};
 
-			const ids = [
-				localStorage.getItem("cpu"),
-				localStorage.getItem("gpu"),
-				localStorage.getItem("memory"),
-				localStorage.getItem("storage"),
-				localStorage.getItem("mb"),
-				localStorage.getItem("cooler"),
-				localStorage.getItem("psu"),
-				localStorage.getItem("case"),
-				localStorage.getItem("os")
-			].filter((id) => id && id !== "null" && id !== "undefined");
+			const partIds = {
+				cpu: localStorage.getItem("cpu"),
+				gpu: localStorage.getItem("gpu"),
+				memory: localStorage.getItem("memory"),
+				storage: localStorage.getItem("storage"),
+				mb: localStorage.getItem("mb"),
+				cooler: localStorage.getItem("cooler"),
+				psu: localStorage.getItem("psu"),
+				case: localStorage.getItem("case"),
+				os: localStorage.getItem("os")
+			};
 
-			async function fetchProductsInOrder(ids) {
-				for (const id of ids) {
-					const ENDPOINT = `product-by-id/${id}`;
-					const DB_URL = `${API_BASE_URL}/${ENDPOINT}`;
+			// 選択されたパーツをフィルタリング
+			const selectedParts = Object.entries(partIds).filter(([key, id]) => 
+				id && id !== "null" && id !== "undefined"
+			);
+
+			async function fetchProductsInOrder() {
+				productsList.innerHTML = '';
+				let completedParts = 0;
+				
+				for (const [category, id] of selectedParts) {
+					const categoryInfo = partCategories[category];
+					
+					// パーツカードのプレースホルダーを作成
+					const partCard = document.createElement("div");
+					partCard.className = "build-part-card loading";
+					partCard.id = `part-${category}`;
+					partCard.innerHTML = `
+						<div class="part-category">
+							<span class="part-icon">${categoryInfo.icon}</span>
+							<span class="part-name">${categoryInfo.name}</span>
+						</div>
+						<div class="part-content">
+							<div class="loading-spinner">読み込み中...</div>
+						</div>
+					`;
+					productsList.appendChild(partCard);
+					
 					try {
+						const ENDPOINT = `product-by-id/${id}`;
+						const DB_URL = `${API_BASE_URL}/${ENDPOINT}`;
 						const response = await fetch(DB_URL, {
 							method: "GET",
 							headers: {
 								Authorization: `Bearer ${localStorage.getItem("token")}`,
 							},
 						});
+						
 						if (!response.ok) {
 							throw new Error(`HTTPエラー! ステータス: ${response.status}`);
 						}
+						
 						const jsonObj = await response.json();
-						if (Object.keys(jsonObj).length == 0) {
-							productsList.innerHTML += "<tr><td colspan='4'>該当なし</td></tr>";
-						} else {
-							(jsonObj.length ? jsonObj : [jsonObj]).forEach((product) => {
-								const productDiv = document.createElement("tr");
-								productDiv.innerHTML = `
-                            <th>${product.maker}</th>
-                            <th>${product.name}</th>
-                            <th><img src="${product.image_url}" alt="${product.name}" style="width: 100px; height: auto;"></th>
-                            <th><a href="${product.information_url}">ココ</a></th>
-                        `;
-								productsList.appendChild(productDiv);
-							});
-						}
+						const product = jsonObj.length ? jsonObj[0] : jsonObj;
+						
+						// パーツカードを更新
+						partCard.className = "build-part-card loaded";
+						partCard.innerHTML = `
+							<div class="part-category">
+								<span class="part-icon">${categoryInfo.icon}</span>
+								<span class="part-name">${categoryInfo.name}</span>
+							</div>
+							<div class="part-content">
+								<div class="part-image">
+									<img src="${product.image_url}" alt="${product.name}">
+								</div>
+								<div class="part-info">
+									<div class="part-maker">${product.maker}</div>
+									<h3 class="part-product-name">${product.name}</h3>
+									<div class="part-actions">
+										<a href="${product.information_url}" class="info-link" target="_blank">詳細情報</a>
+										<button onclick="changePart('${category}')" class="change-button">変更</button>
+									</div>
+								</div>
+							</div>
+						`;
+						
+						completedParts++;
+						
 					} catch (error) {
-						console.error("エラー:", error);
-						productsList.innerHTML += `<tr><td colspan='4' style="color:red;">データ取得に失敗しました。<br>${error.message}</td></tr>`;
+						console.error(`${category}エラー:`, error);
+						partCard.className = "build-part-card error";
+						partCard.innerHTML = `
+							<div class="part-category">
+								<span class="part-icon">${categoryInfo.icon}</span>
+								<span class="part-name">${categoryInfo.name}</span>
+							</div>
+							<div class="part-content">
+								<div class="error-message">
+									<span>データ取得に失敗しました</span>
+									<button onclick="changePart('${category}')" class="change-button">再選択</button>
+								</div>
+							</div>
+						`;
 					}
+				}
+				
+				// ステータス更新
+				if (completedParts === selectedParts.length && selectedParts.length > 0) {
+					statusIndicator.textContent = `構成完了 (${completedParts}/${Object.keys(partCategories).length}パーツ)`;
+					statusIndicator.className = "status-indicator complete";
+				} else if (selectedParts.length === 0) {
+					statusIndicator.textContent = "パーツが選択されていません";
+					statusIndicator.className = "status-indicator empty";
+					productsList.innerHTML = `
+						<div class="empty-build">
+							<div class="empty-icon">🛠️</div>
+							<h3>パーツが選択されていません</h3>
+							<p>まずはパーツを選択してPC構成を作成しましょう</p>
+							<button onclick="startOver()" class="start-button">パーツ選択を開始</button>
+						</div>
+					`;
+				} else {
+					statusIndicator.textContent = `構成中 (${completedParts}/${Object.keys(partCategories).length}パーツ)`;
+					statusIndicator.className = "status-indicator partial";
 				}
 			}
 
-			fetchProductsInOrder(ids);
-
-			function move() {
-				location.href = `./save-build.html`;
+			// パーツ変更関数
+			function changePart(category) {
+				const pageMap = {
+					cpu: "/cpu.html",
+					gpu: "/gpu.html", 
+					memory: "/memory.html",
+					storage: "/storage.html",
+					mb: "/motherboard.html",
+					cooler: "/cooler.html",
+					psu: "/powersupply.html",
+					case: "/case.html",
+					os: "/os.html"
+				};
+				
+				if (pageMap[category]) {
+					location.href = pageMap[category];
+				}
 			}
+
+			// 最初からやり直す関数
+			function startOver() {
+				if (confirm("現在の構成をリセットして最初からやり直しますか？")) {
+					Object.keys(partCategories).forEach(key => {
+						localStorage.removeItem(key);
+					});
+					location.href = "/index.html";
+				}
+			}
+
+			// 保存関数
+			function move() {
+				if (selectedParts.length === 0) {
+					alert("保存するパーツが選択されていません。");
+					return;
+				}
+				location.href = "./save-build.html";
+			}
+
+			// ページ読み込み時に実行
+			fetchProductsInOrder();
 		</script>
 	</body>
 </html>
