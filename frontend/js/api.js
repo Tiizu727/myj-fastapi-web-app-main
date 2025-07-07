@@ -302,8 +302,8 @@ const updateTaskImageApi = (taskId, file) => {
 /**
  * タスクを削除するAPI
  */
-const deleteTaskApi = (taskId) => {
-	const url = `${API_HOST}/task/${taskId}`;
+const deleteBuildApi = (buildId) => {
+	const url = `${API_HOST}/build/${buildId}`;
 	return fetch(url, {
 		method: "DELETE",
 		headers: {

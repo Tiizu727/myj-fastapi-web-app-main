@@ -432,7 +432,7 @@ def get_gpu_from_gameid(gameid: int, db: Session):
 def create_build(build: dict, db: Session) -> dict:
     sql = text(
         """
-        INSERT INTO build(name,cpu,gpu,memory,storage,mb,cooler,psu,`case`,`OS`) VALUES(:name,:cpu,:gpu,:memory,:storage,:mb,:cooler,:psu,:case,:os)
+        INSERT INTO build(name,cpu,gpu,memory,storage,mb,cooler,psu,`case`,`OS`,created_at) VALUES(:name,:cpu,:gpu,:memory,:storage,:mb,:cooler,:psu,:case,:os, NOW())
         """
     )
 
@@ -546,3 +546,27 @@ def get_gpu_by_game(db: Session, game_id: int):
     print(f"DB操作結果: {result}")
 
     return result
+
+def delete_build(db: Session, build_id: int):
+    sql = text(
+        """
+        DELETE FROM build WHERE id = :build_id
+        """
+    )
+
+    sql1 = text(
+        """
+        DELETE FROM user_builds WHERE buildid = :build_id
+        """
+    )
+
+    print(f"SQL: {sql}")
+    result = db.execute(sql, {"build_id": build_id})
+    db.commit()
+    print(f"DB操作結果: {result}")
+    print(f"SQL1: {sql1}")
+    result1 = db.execute(sql1, {"build_id": build_id})
+    db.commit()
+    print(f"DB操作結果1: {result1}")
+
+    return {"message": "Build deleted successfully"}

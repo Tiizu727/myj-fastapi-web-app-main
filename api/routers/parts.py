@@ -116,3 +116,9 @@ def get_gpu_by_game(
     game_id: int, db: Session = Depends(get_db)
 ):
     return parts_cruds.get_gpu_by_game(db, game_id)
+
+@router.delete("/build/{build_id}")
+def delete_build(
+    build_id: int, db: Session = Depends(get_db)
+):
+    return parts_cruds.delete_build(db, build_id)

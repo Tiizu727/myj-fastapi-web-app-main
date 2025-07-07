@@ -152,14 +152,14 @@
   function deleteBuild(buildId, buildName) {
     if (confirm(`「${buildName}」を削除しますか？この操作は取り消せません。`)) {
       // 削除APIを呼び出す（APIが用意されている場合）
-      // deleteBuildApi(buildId).then(() => {
-      //   location.reload()
-      // }).catch(error => {
-      //   alert('削除に失敗しました: ' + error.message)
-      // })
+      deleteBuildApi(buildId).then(() => {
+        location.reload()
+      }).catch(error => {
+        alert('削除に失敗しました: ' + error.message)
+      })
       
       // 現在はアラートのみ表示
-      alert('削除機能は開発中です')
+      // alert('削除機能は開発中です')
     }
   }
 </script>
