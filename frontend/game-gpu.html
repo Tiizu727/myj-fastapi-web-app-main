@@ -23,9 +23,13 @@
 				<p class="page-subtitle">選択したゲームに最適なGPUを選択してください</p>
 			</div>
 			
-			<div class="products-container">
+			<div class="products-container" id="products-container">
 				<div class="filters-sidebar">
 					<h3>絞り込み</h3>
+					<div class="filter-group">
+						<label>キーワード検索</label>
+						<input type="text" id="search-input" class="search-box" placeholder="GPUを検索...">
+					</div>
 					<div class="filter-group">
 						<label>メーカー</label>
 						<select id="maker-filter">
@@ -44,14 +48,21 @@
 							<option value="">すべて</option>
 						</select>
 					</div>
+					<div class="filter-actions">
+						<button id="reset-filters" class="reset-button">リセット</button>
+					</div>
 				</div>
 				
-				<div class="products-grid" id="gpu-list">
-					<!-- ここに商品が入る -->
+				<div class="products-content">
+					<div id="result-count" class="result-count">読み込み中...</div>
+					<div class="products-grid" id="gpu-list">
+						<!-- ここに商品が入る -->
+					</div>
 				</div>
 			</div>
 		</div>
 
+		<script src="/js/filters.js"></script>
 		<script>
 			localStorage.removeItem("gpu");
 			const params = new URLSearchParams(window.location.search);
@@ -62,6 +73,63 @@
 
 			const GPU_URL = `${API_BASE_URL}/${ENDPOINT}`;
 			const productsList = document.getElementById("gpu-list");
+
+			let partsFilter;
+			let allProducts = [];
+
+			// フィルタリング結果を表示する関数
+			window.renderFilteredProducts = function(products) {
+				if (Object.keys(products).length == 0 || products.length == 0) {
+					productsList.innerHTML = '<p class="no-products">該当する商品がありません</p>';
+				} else {
+					productsList.innerHTML = '';
+					products.forEach((product) => {
+						const productDiv = document.createElement("div");
+						productDiv.className = "product-card";
+						productDiv.innerHTML = `
+							<div class="product-image">
+								<img src="${product.image_url}" alt="${product.name}">
+								<div class="evaluation-badge evaluation-good">推奨</div>
+							</div>
+							<div class="product-info">
+								<div class="product-maker">${product.maker}</div>
+								<h3 class="product-name">${product.name}</h3>
+								<div class="product-specs">
+									<div class="spec-item">
+										<span class="spec-label">チップセット</span>
+										<span class="spec-value">${product.chipset_name || product.chipset_id}</span>
+									</div>
+									<div class="spec-item">
+										<span class="spec-label">VRAM</span>
+										<span class="spec-value">${product.vram}</span>
+									</div>
+									<div class="spec-item">
+										<span class="spec-label">クロック</span>
+										<span class="spec-value">ベース:${product.base_clock}GHz / ブースト:${product.boost_clock}GHz</span>
+									</div>
+									<div class="spec-item">
+										<span class="spec-label">サイズ</span>
+										<span class="spec-value">${product.width}×${product.height}×${product.depth}mm</span>
+									</div>
+									<div class="spec-item">
+										<span class="spec-label">出力</span>
+										<span class="spec-value">HDMI×${product.HDMI} / DP×${product.DP}</span>
+									</div>
+									<div class="spec-item">
+										<span class="spec-label">TDP</span>
+										<span class="spec-value">${product.tdp}W</span>
+									</div>
+								</div>
+								<div class="product-actions">
+									<a href="${product.information_url}" class="info-button" target="_blank">詳細情報</a>
+									<button onclick="move(${product.id})" class="select-button">選択する</button>
+								</div>
+							</div>
+						`;
+						productsList.appendChild(productDiv);
+					});
+				}
+			};
 
 			fetch(GPU_URL, {
 				method: "GET",
@@ -76,60 +144,31 @@
 					return response.json();
 				})
 				.then((jsonObj) => {
-					if (Object.keys(jsonObj).length == 0) {
-						productsList.innerHTML = '<p class="no-products">該当する商品がありません</p>';
-					} else {
-						productsList.innerHTML = '';
-						jsonObj.forEach((product) => {
-							const productDiv = document.createElement("div");
-							productDiv.className = "product-card";
-							productDiv.innerHTML = `
-								<div class="product-image">
-									<img src="${product.image_url}" alt="${product.name}">
-									<div class="evaluation-badge evaluation-good">推奨</div>
-								</div>
-								<div class="product-info">
-									<div class="product-maker">${product.maker}</div>
-									<h3 class="product-name">${product.name}</h3>
-									<div class="product-specs">
-										<div class="spec-item">
-											<span class="spec-label">チップセット</span>
-											<span class="spec-value">${product.chipset_id}</span>
-										</div>
-										<div class="spec-item">
-											<span class="spec-label">VRAM</span>
-											<span class="spec-value">${product.vram}</span>
-										</div>
-										<div class="spec-item">
-											<span class="spec-label">クロック</span>
-											<span class="spec-value">ベース:${product.base_clock}GHz / ブースト:${product.boost_clock}GHz</span>
-										</div>
-										<div class="spec-item">
-											<span class="spec-label">サイズ</span>
-											<span class="spec-value">${product.width}×${product.height}×${product.depth}mm</span>
-										</div>
-										<div class="spec-item">
-											<span class="spec-label">出力</span>
-											<span class="spec-value">HDMI×${product.HDMI} / DP×${product.DP}</span>
-										</div>
-										<div class="spec-item">
-											<span class="spec-label">TDP</span>
-											<span class="spec-value">${product.tdp}W</span>
-										</div>
-									</div>
-									<div class="product-actions">
-										<a href="${product.information_url}" class="info-button" target="_blank">詳細情報</a>
-										<button onclick="move(${product.id})" class="select-button">選択する</button>
-									</div>
-								</div>
-							`;
-							productsList.appendChild(productDiv);
-						});
+					allProducts = jsonObj;
+					
+					// フィルタリング機能を初期化
+					partsFilter = new PartsFilter('products-container', allProducts);
+					
+					// 初期表示
+					renderFilteredProducts(allProducts);
+					
+					// 結果件数を更新
+					const resultCount = document.getElementById('result-count');
+					if (resultCount) {
+						resultCount.textContent = `${allProducts.length}件の商品が見つかりました`;
 					}
 				})
 				.catch((error) => {
 					console.error("エラー:", error);
 					productsList.innerHTML = `<p style="color:red;">データ取得に失敗しました。<br>${error.message}</p>`;
+					
+					// エラー時の結果件数表示
+					const resultCount = document.getElementById('result-count');
+					if (resultCount) {
+						resultCount.textContent = 'データの読み込みに失敗しました';
+						resultCount.style.color = '#e74c3c';
+						resultCount.style.borderColor = '#e74c3c';
+					}
 				});
 
 			function move(id) {

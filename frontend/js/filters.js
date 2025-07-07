@@ -42,7 +42,7 @@ class PartsFilter {
 
     // GPUの場合
     if (sample.chipset_id !== undefined && sample.vram !== undefined) {
-      this.filterOptions.chipset = [...new Set(this.originalData.map(item => item.chipset_id))].sort();
+      this.filterOptions.chipset = [...new Set(this.originalData.map(item => item.chipset_name || item.chipset_id))].sort();
       this.filterOptions.vram = [...new Set(this.originalData.map(item => item.vram))].sort();
     }
 
@@ -305,7 +305,7 @@ class PartsFilter {
       }
 
       // チップセットフィルター
-      if (this.filters.chipset && item.chipset_id !== this.filters.chipset) {
+      if (this.filters.chipset && (item.chipset_name || item.chipset_id) !== this.filters.chipset) {
         return false;
       }
 
