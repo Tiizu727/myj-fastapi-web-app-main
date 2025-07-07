@@ -9,20 +9,53 @@
 
 	<body>
     <div class="header">
-      <img src="/img/logo.png" alt="Logo" height="100px" width="auto" />
+      <div class="header-content">
+        <img src="/img/logo.png" alt="Logo" class="logo" />
+        <h1 class="site-title">PC Builder</h1>
+      </div>
     </div>
-		<div class="contain">
-			<div>
-				<h1 id="welcome"></h1>
-			</div>
+    
+    <div class="main-container">
+      <div class="hero-section">
+        <h1 id="welcome" class="hero-title">あなたにぴったりのPCを作ろう</h1>
+        <p class="hero-subtitle">高性能なパーツを選んで、理想のPCを構築しましょう</p>
+      </div>
 
-			<h2>商品表示</h2>
-			<a href="/display.html">商品一覧ページへ</a>
-			<h2>パーツを選ぶ</h2>
-			<a href="/cpu.html">CPUから選ぶ</a>
-			<a href="/gpu.html">GPUから選ぶ</a>
-			<a href="/game.html">ゲームから選ぶ</a>
-		</div>
+      <div class="content-grid">
+        <div class="card product-card">
+          <div class="card-icon">🛍️</div>
+          <h2 class="card-title">商品表示</h2>
+          <p class="card-description">全商品を一覧で確認できます</p>
+          <a href="/display.html" class="card-button">商品一覧ページへ</a>
+        </div>
+        
+        <div class="card-section">
+          <h2 class="section-title">パーツを選ぶ</h2>
+          <div class="parts-grid">
+            <div class="card parts-card">
+              <div class="card-icon">💻</div>
+              <h3 class="card-title">CPUから選ぶ</h3>
+              <p class="card-description">プロセッサを選んでPC構成を決めましょう</p>
+              <a href="/cpu.html" class="card-button">CPUを選ぶ</a>
+            </div>
+            
+            <div class="card parts-card">
+              <div class="card-icon">🎮</div>
+              <h3 class="card-title">GPUから選ぶ</h3>
+              <p class="card-description">グラフィックカードを選んでゲーミングPCを構築</p>
+              <a href="/gpu.html" class="card-button">GPUを選ぶ</a>
+            </div>
+            
+            <div class="card parts-card">
+              <div class="card-icon">🎯</div>
+              <h3 class="card-title">ゲームから選ぶ</h3>
+              <p class="card-description">プレイしたいゲームに最適なPCを構築</p>
+              <a href="/game.html" class="card-button">ゲームを選ぶ</a>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
 
 		<script>
 			localStorage.removeItem("cpu");
