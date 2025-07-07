@@ -1,79 +1,127 @@
 <!DOCTYPE html>
 <html lang="ja">
-  <head>
-    <meta charset="UTF-8" />
-    <title>商品一覧</title>
-    <!-- cssファイルをimport -->
-    <link rel="stylesheet" href="/css/general.css" />
-  </head>
+	<head>
+		<meta charset="UTF-8" />
+		<title>商品一覧</title>
+		<!-- cssファイルをimport -->
+		<link rel="stylesheet" href="/css/general.css" />
+	</head>
 
-  <body>
-    <h2>クーラー一覧</h2>
-    <table id="product-list">
-      <!-- ここにタスクが入る -->
-    </table>
+	<body>
+		<div class="header">
+			<div class="header-content">
+				<img src="/img/logo.png" alt="Logo" class="logo" />
+				<h1 class="site-title">PC Builder</h1>
+			</div>
+		</div>
+		
+		<div class="main-container">
+			<div class="page-header">
+				<h1 class="page-title">クーラー一覧</h1>
+				<p class="page-subtitle">お好みのクーラーを選択してください</p>
+			</div>
+			
+			<div class="products-container">
+				<div class="filters-sidebar">
+					<h3>絞り込み</h3>
+					<div class="filter-group">
+						<label>メーカー</label>
+						<select id="maker-filter">
+							<option value="">すべて</option>
+						</select>
+					</div>
+					<div class="filter-group">
+						<label>冷却方式</label>
+						<select id="type-filter">
+							<option value="">すべて</option>
+							<option value="air">空冷</option>
+							<option value="liquid">水冷</option>
+						</select>
+					</div>
+				</div>
+				
+				<div class="products-grid" id="cooler-list">
+					<!-- ここに商品が入る -->
+				</div>
+			</div>
+		</div>
 
-    <script>
-      localStorage.removeItem("cooler")
-      const cpu_id = localStorage.getItem("cpu");
+		<script>
+			localStorage.removeItem("cooler")
+			const cpu_id = localStorage.getItem("cpu");
 
-      const API_BASE_URL = "http://localhost:8000";
-      let ENDPOINT = `cooler-with/${cpu_id}`;
+			const API_BASE_URL = "http://localhost:8000";
+			let ENDPOINT = `cooler-with/${cpu_id}`;
 
-      const DB_URL = `${API_BASE_URL}/${ENDPOINT}`;
-      const productsList = document.getElementById("product-list");
+			const DB_URL = `${API_BASE_URL}/${ENDPOINT}`;
+			const productsList = document.getElementById("cooler-list");
 
-      fetch(DB_URL, {
-        method: "GET",
-        headers: {
-          Authorization: `Bearer ${localStorage.getItem("token")}`,
-        },
-      })
-        .then((response) => {
-          if (!response.ok) {
-            throw new Error(`HTTPエラー! ステータス: ${response.status}`);
-          }
-          return response.json();
-        })
-        .then((jsonObj) => {
-            if(Object.keys(jsonObj).length == 0){
-                productsList.innerHTML = "該当なし";
-            } else {
-                productsList.innerHTML = `
-                <tr>
-                <th>メーカー</th>
-                <th>商品名</th>
-                <th>商品画像</th>
-                <th>情報</th>
-                <th>タイプ</th>
-                <th>サイズ</th>
-                <th>選択</th>
-                </tr>
-                `;
-                jsonObj.forEach((product) => {
-                    const productDiv = document.createElement("tr");
-                    productDiv.innerHTML = `
-                    <th>${product.maker}</th>
-                    <th>${product.name}</th>
-                    <th><img src="${product.image_url}" alt="${product.name}" style="width: 100px; height: auto;"></th>
-                    <th><a href="${product.information_url}">ココ</a></th>
-                    <th>${product.cooler_type == "air" ? `空冷` : "水冷"}</th>
-                    <th>${product.cooler_type == "air" ? `高さ:` : `ラジエーターサイズ:`}${product.size}mm</th>
-                    <th><button onclick="move(${product.id})">選択</button></th>
-                    `;
-                    productsList.appendChild(productDiv);
-                });
-            }
-        })
-        .catch((error) => {
-          console.error("エラー:", error);
-          productsList.innerHTML = `<p style="color:red;">データ取得に失敗しました。<br>${error.message}</p>`;
-        });
+			fetch(DB_URL, {
+				method: "GET",
+				headers: {
+					Authorization: `Bearer ${localStorage.getItem("token")}`,
+				},
+			})
+				.then((response) => {
+					if (!response.ok) {
+						throw new Error(`HTTPエラー! ステータス: ${response.status}`);
+					}
+					return response.json();
+				})
+				.then((jsonObj) => {
+					if(Object.keys(jsonObj).length == 0){
+						productsList.innerHTML = `
+							<div class="no-products">
+								<h3>該当する商品がありません</h3>
+								<p>条件を変更して再度お試しください</p>
+							</div>
+						`;
+					} else {
+						productsList.innerHTML = '';
+						jsonObj.forEach((product) => {
+							const productDiv = document.createElement("div");
+							productDiv.className = "product-card";
+							productDiv.innerHTML = `
+								<div class="product-image">
+									<img src="${product.image_url}" alt="${product.name}">
+								</div>
+								<div class="product-info">
+									<div class="product-maker">${product.maker}</div>
+									<h3 class="product-name">${product.name}</h3>
+									<div class="product-specs">
+										<div class="spec-item">
+											<span class="spec-label">冷却方式</span>
+											<span class="spec-value">${product.cooler_type == "air" ? "空冷" : "水冷"}</span>
+										</div>
+										<div class="spec-item">
+											<span class="spec-label">サイズ</span>
+											<span class="spec-value">${product.cooler_type == "air" ? "高さ:" : "ラジエーター:"}${product.size}mm</span>
+										</div>
+									</div>
+									<div class="product-actions">
+										<a href="${product.information_url}" class="info-button" target="_blank">詳細情報</a>
+										<button onclick="move(${product.id})" class="select-button">選択する</button>
+									</div>
+								</div>
+							`;
+							productsList.appendChild(productDiv);
+						});
+					}
+				})
+				.catch((error) => {
+					console.error("エラー:", error);
+					productsList.innerHTML = `
+						<div class="error-message">
+							<h3>データ取得に失敗しました</h3>
+							<p style="color:red;">${error.message}</p>
+						</div>
+					`;
+				});
 
-        function move(id){
-          localStorage.setItem("cooler", id);
-          location.href = "/powersupply.html";
-        }
-    </script>
-  </body>
+			function move(id){
+				localStorage.setItem("cooler", id);
+				location.href = "/powersupply.html";
+			}
+		</script>
+	</body>
 </html>

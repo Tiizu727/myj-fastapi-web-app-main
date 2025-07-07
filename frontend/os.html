@@ -8,10 +8,35 @@
 	</head>
 
 	<body>
-		<h2>ケース一覧</h2>
-		<table id="product-list">
-			<!-- ここにタスクが入る -->
-		</table>
+		<div class="header">
+			<div class="header-content">
+				<img src="/img/logo.png" alt="Logo" class="logo" />
+				<h1 class="site-title">PC Builder</h1>
+			</div>
+		</div>
+		
+		<div class="main-container">
+			<div class="page-header">
+				<h1 class="page-title">OS一覧</h1>
+				<p class="page-subtitle">お好みのオペレーティングシステムを選択してください</p>
+			</div>
+			
+			<div class="products-container">
+				<div class="filters-sidebar">
+					<h3>絞り込み</h3>
+					<div class="filter-group">
+						<label>メーカー</label>
+						<select id="maker-filter">
+							<option value="">すべて</option>
+						</select>
+					</div>
+				</div>
+				
+				<div class="products-grid" id="os-list">
+					<!-- ここに商品が入る -->
+				</div>
+			</div>
+		</div>
 
 		<script>
 			localStorage.removeItem("os");
@@ -20,7 +45,7 @@
 			let ENDPOINT = `os`;
 
 			const DB_URL = `${API_BASE_URL}/${ENDPOINT}`;
-			const productsList = document.getElementById("product-list");
+			const productsList = document.getElementById("os-list");
 
 			fetch(DB_URL, {
 				method: "GET",
@@ -36,42 +61,50 @@
 				})
 				.then((jsonObj) => {
 					if (Object.keys(jsonObj).length == 0) {
-						productsList.innerHTML = "該当なし";
-					} else {
 						productsList.innerHTML = `
-                <tr>
-                <th>メーカー</th>
-                <th>商品名</th>
-                <th>商品画像</th>
-                <th>情報</th>
-                <th>選択</th>
-                </tr>
-                `;
+							<div class="no-products">
+								<h3>該当する商品がありません</h3>
+								<p>条件を変更して再度お試しください</p>
+							</div>
+						`;
+					} else {
+						productsList.innerHTML = '';
 						jsonObj.forEach((product) => {
-							const productDiv = document.createElement("tr");
+							const productDiv = document.createElement("div");
+							productDiv.className = "product-card";
 							productDiv.innerHTML = `
-                    <th>${product.maker ? `${product.maker}` : ""}</th>
-                    <th>${product.name}</th>
-                    <th>${
-						product.image_url
-							? `<img src="${product.image_url}" alt="${product.name}" style="width: 100px; height: auto;">`
-							: ""
-					}</th>
-                    <th>${
-						product.information_url
-							? '<a href="${product.information_url}">ココ</a>'
-							: ""
-					}</th>
-                    <th><button onclick="move(${product.id})">選択</button></th>
-                    `;
+								<div class="product-image">
+									${product.image_url ? `<img src="${product.image_url}" alt="${product.name}">` : '<div class="no-image">画像なし</div>'}
+								</div>
+								<div class="product-info">
+									<div class="product-maker">${product.maker ? product.maker : "OS"}</div>
+									<h3 class="product-name">${product.name}</h3>
+									<div class="product-specs">
+										<div class="spec-item">
+											<span class="spec-label">種類</span>
+											<span class="spec-value">オペレーティングシステム</span>
+										</div>
+									</div>
+									<div class="product-actions">
+										${product.information_url ? `<a href="${product.information_url}" class="info-button" target="_blank">詳細情報</a>` : '<span class="info-button disabled">詳細情報なし</span>'}
+										<button onclick="move(${product.id})" class="select-button">選択する</button>
+									</div>
+								</div>
+							`;
 							productsList.appendChild(productDiv);
 						});
 					}
 				})
 				.catch((error) => {
 					console.error("エラー:", error);
-					productsList.innerHTML = `<p style="color:red;">データ取得に失敗しました。<br>${error.message}</p>`;
+					productsList.innerHTML = `
+						<div class="error-message">
+							<h3>データ取得に失敗しました</h3>
+							<p style="color:red;">${error.message}</p>
+						</div>
+					`;
 				});
+				
 			function move(id) {
 				localStorage.setItem("os", id);
 				location.href = "/your-build.html";

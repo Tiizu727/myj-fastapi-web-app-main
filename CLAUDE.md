@@ -34,3 +34,4 @@ FastAPIを用いた自作パソコンについてのwebサービス。
 - 会話は全て日本語で行う
 - 指示が曖昧なときは聞く
 - githubにコミット、プッシュする際はhttps://github.com/Tiizu727/myj-fastapi-web-app-main.gitにする
+- サービスの名前は誰でも自作PCナビ、略称はダレジサ

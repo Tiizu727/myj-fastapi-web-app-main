@@ -143,31 +143,31 @@ body {
   box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
 }
 
-/* 商品カード */
-.product-card {
+/* トップページの商品表示カード */
+.content-grid .product-card {
   text-align: center;
   background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
   color: white;
 }
 
-.product-card::before {
+.content-grid .product-card::before {
   background: rgba(255, 255, 255, 0.2);
 }
 
-.product-card .card-title {
+.content-grid .product-card .card-title {
   color: white;
 }
 
-.product-card .card-description {
+.content-grid .product-card .card-description {
   color: rgba(255, 255, 255, 0.9);
 }
 
-.product-card .card-button {
+.content-grid .product-card .card-button {
   background: white;
   color: #f5576c;
 }
 
-.product-card .card-button:hover {
+.content-grid .product-card .card-button:hover {
   background: rgba(255, 255, 255, 0.9);
 }
 
@@ -582,6 +582,17 @@ body {
 .game-button:hover {
   transform: translateY(-2px);
   box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
+}
+
+/* エラーメッセージ */
+.no-products {
+  text-align: center;
+  color: #666;
+  font-size: 1.1rem;
+  padding: 2rem;
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
 }
 
 /* レスポンシブデザイン */

@@ -8,10 +8,47 @@
   </head>
 
   <body>
-    <h2>GPU一覧</h2>
-    <table id="product-list">
-      <!-- ここにタスクが入る -->
-    </table>
+    <div class="header">
+      <div class="header-content">
+        <img src="/img/logo.png" alt="Logo" class="logo" />
+        <h1 class="site-title">PC Builder</h1>
+      </div>
+    </div>
+    
+    <div class="main-container">
+      <div class="page-header">
+        <h1 class="page-title">メモリ一覧</h1>
+        <p class="page-subtitle">お好みのメモリを選択してください</p>
+      </div>
+      
+      <div class="products-container">
+        <div class="filters-sidebar">
+          <h3>絞り込み</h3>
+          <div class="filter-group">
+            <label>メーカー</label>
+            <select id="maker-filter">
+              <option value="">すべて</option>
+            </select>
+          </div>
+          <div class="filter-group">
+            <label>容量</label>
+            <select id="capacity-filter">
+              <option value="">すべて</option>
+            </select>
+          </div>
+          <div class="filter-group">
+            <label>速度</label>
+            <select id="speed-filter">
+              <option value="">すべて</option>
+            </select>
+          </div>
+        </div>
+        
+        <div class="products-grid" id="product-list">
+          <!-- ここに商品が入る -->
+        </div>
+      </div>
+    </div>
 
     <script>
       localStorage.removeItem("memory")
@@ -37,37 +74,50 @@
         })
         .then((jsonObj) => {
             if(Object.keys(jsonObj).length == 0){
-                productsList.innerHTML = "該当なし";
+                productsList.innerHTML = '<p class="no-products">該当する商品がありません</p>';
             } else {
-                productsList.innerHTML = `
-                <tr>
-                <th>メーカー</th>
-                <th>商品名</th>
-                <th>商品画像</th>
-                <th>情報</th>
-                <th>搭載チップ</th>
-                <th>メモリータイプ</th>
-                <th>容量</th>
-                <th>メモリ速度</th>
-                <th>枚数</th>
-                <th>TDP</th>
-                <th>選択</th>
-                </tr>
-                `;
+                productsList.innerHTML = '';
                 jsonObj.forEach((product) => {
-                    const productDiv = document.createElement("tr");
+                    const productDiv = document.createElement("div");
+                    productDiv.className = "product-card";
                     productDiv.innerHTML = `
-                    <th>${product.maker}</th>
-                    <th>${product.name}</th>
-                    <th><img src="${product.image_url}" alt="${product.name}" style="width: 100px; height: auto;"></th>
-                    <th><a href="${product.information_url}">ココ</a></th>
-                    <th>${product.chipset_id}</th>
-                    <th>${product.memory_type}</th>
-                    <th>${product.capacity_gb}</th>
-                    <th>${product.speed_mhz} MHz</th>
-                    <th>${product.module_count}枚</th>
-                    <th>${product.tdp}W</th>
-                    <th><button onclick="move(${product.id})">選択</button></th>
+                      <div class="product-image">
+                        <img src="${product.image_url}" alt="${product.name}">
+                      </div>
+                      <div class="product-info">
+                        <div class="product-maker">${product.maker}</div>
+                        <h3 class="product-name">${product.name}</h3>
+                        <div class="product-specs">
+                          <div class="spec-item">
+                            <span class="spec-label">チップセット</span>
+                            <span class="spec-value">${product.chipset_id}</span>
+                          </div>
+                          <div class="spec-item">
+                            <span class="spec-label">メモリタイプ</span>
+                            <span class="spec-value">${product.memory_type}</span>
+                          </div>
+                          <div class="spec-item">
+                            <span class="spec-label">容量</span>
+                            <span class="spec-value">${product.capacity_gb}GB</span>
+                          </div>
+                          <div class="spec-item">
+                            <span class="spec-label">速度</span>
+                            <span class="spec-value">${product.speed_mhz}MHz</span>
+                          </div>
+                          <div class="spec-item">
+                            <span class="spec-label">枚数</span>
+                            <span class="spec-value">${product.module_count}枚</span>
+                          </div>
+                          <div class="spec-item">
+                            <span class="spec-label">TDP</span>
+                            <span class="spec-value">${product.tdp}W</span>
+                          </div>
+                        </div>
+                        <div class="product-actions">
+                          <a href="${product.information_url}" class="info-button" target="_blank">詳細情報</a>
+                          <button onclick="move(${product.id})" class="select-button">選択する</button>
+                        </div>
+                      </div>
                     `;
                     productsList.appendChild(productDiv);
                 });
