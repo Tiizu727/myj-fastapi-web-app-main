@@ -3,7 +3,7 @@
 
 <head>
   <meta charset="UTF-8">
-  <title>新規登録</title>
+  <title>新規登録 - だれでも自作PCナビ</title>
   <!-- cssファイルをimport -->
   <link rel="stylesheet" href="/css/general.css">
 
@@ -12,27 +12,68 @@
   <script type="text/javascript" src="/js/api.js"></script>
 </head>
 
-<body>
-
-  <div class="login-container">
-    <h1>新規登録</h1>
-    <div>
-      <div id="megs" style="color: red;">&nbsp;</div>
-      <label for="nickname">ニックネーム:</label>
-      <input type="text" id="nickname" name="nickname" required>
-      <br />
-
-      <label for="email">メールアドレス:</label>
-      <input type="email" id="email" name="email" required>
-      <br />
-
-      <label for="password">パスワード:</label>
-      <input type="password" id="password" name="password" required>
-      <br /><br />
-
-      <button onclick="register()">新規登録</button>
+<body class="auth-body">
+  <div class="auth-container">
+    <div class="auth-header">
+      <div class="auth-logo">
+        <img src="/img/logo.png" alt="Logo" class="logo-image" />
+        <h1 class="auth-title">だれでも自作PCナビ</h1>
+      </div>
+      <p class="auth-subtitle">新しいアカウントを作成してください</p>
     </div>
 
+    <div class="auth-form">
+      <div class="form-group">
+        <div id="megs" class="error-message">&nbsp;</div>
+      </div>
+      
+      <div class="form-group">
+        <label for="nickname" class="form-label">
+          <span class="label-icon">👤</span>
+          ニックネーム
+        </label>
+        <input type="text" id="nickname" name="nickname" class="form-input" placeholder="表示名を入力" required>
+      </div>
+
+      <div class="form-group">
+        <label for="email" class="form-label">
+          <span class="label-icon">📧</span>
+          メールアドレス
+        </label>
+        <input type="email" id="email" name="email" class="form-input" placeholder="example@email.com" required>
+      </div>
+
+      <div class="form-group">
+        <label for="password" class="form-label">
+          <span class="label-icon">🔒</span>
+          パスワード
+        </label>
+        <input type="password" id="password" name="password" class="form-input" placeholder="安全なパスワードを設定" required>
+      </div>
+
+      <div class="form-actions">
+        <button onclick="register()" class="auth-primary-button">
+          <span class="button-icon">✨</span>
+          新規登録
+        </button>
+        
+        <div class="auth-divider">
+          <span>すでにアカウントをお持ちですか？</span>
+        </div>
+        
+        <a href="/login.html" class="auth-secondary-button">
+          <span class="button-icon">🔑</span>
+          ログイン
+        </a>
+      </div>
+
+      <div class="auth-footer">
+        <a href="/index.html" class="back-link">
+          <span class="link-icon">🏠</span>
+          トップページに戻る
+        </a>
+      </div>
+    </div>
   </div>
 
 </body>
@@ -55,8 +96,22 @@
     // 全ての項目が入力されているかチェック
     if (nickname === '' || email === '' || password === '') {
       megsBox.innerText = '全ての項目を入力してください'
+      megsBox.style.display = 'block'
       return
     }
+
+    // パスワードの長さチェック
+    if (password.length < 6) {
+      megsBox.innerText = 'パスワードは6文字以上で入力してください'
+      megsBox.style.display = 'block'
+      return
+    }
+
+    // ローディング状態を表示
+    const registerButton = document.querySelector('.auth-primary-button')
+    const originalText = registerButton.innerHTML
+    registerButton.innerHTML = '<span class="button-icon">⏳</span>登録中...'
+    registerButton.disabled = true
 
     // API用データを作成する
     const data = {
@@ -64,16 +119,36 @@
       nickname: nickname,
       password: password
     }
+
     // API操作を呼び出す
     signUpApi(data)
       .then((res) => {
-        megsBox.innerHTML = '新規登録に成功しました <a href="/login.html">ログインページへ</a>'
+        megsBox.innerHTML = '<span style="color: #00b894;">✅ 新規登録に成功しました！</span><br><a href="/login.html" style="color: #0984e3; text-decoration: underline;">ログインページへ移動</a>'
+        megsBox.style.display = 'block'
+        
+        // フォームをリセット
+        document.getElementById('nickname').value = ''
+        document.getElementById('email').value = ''
+        document.getElementById('password').value = ''
+        
+        registerButton.innerHTML = originalText
+        registerButton.disabled = false
       })
       .catch((error) => {
-        megsBox.innerText = error.message
+        megsBox.innerText = '❌ ' + error.message
+        megsBox.style.display = 'block'
+        registerButton.innerHTML = originalText
+        registerButton.disabled = false
         throw error
       })
   }
+
+  // Enterキーで登録
+  document.addEventListener('keypress', function(e) {
+    if (e.key === 'Enter') {
+      register()
+    }
+  })
 </script>
 
 </html>

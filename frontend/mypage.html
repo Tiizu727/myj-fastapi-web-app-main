@@ -3,7 +3,7 @@
 
 <head>
   <meta charset="UTF-8">
-  <title>マイページ</title>
+  <title>マイページ - だれでも自作PCナビ</title>
   <!-- cssファイルをimport -->
   <link rel="stylesheet" href="/css/general.css">
 
@@ -13,18 +13,65 @@
 </head>
 
 <body>
-  <div>
-    <h1 id="welcome"></h1>
-    <button onclick="logout()">ログアウト</button>
+  <div class="header">
+    <div class="header-content">
+      <img src="/img/logo.png" alt="Logo" class="logo" />
+      <a href="/index.html" class="site-title-link">
+        <h1 class="site-title">だれでも自作PCナビ</h1>
+      </a>
+    </div>
   </div>
 
-  <h2>構成一覧</h2>
-  <a href="/index.html">
-    <button>パソコンを構築</button>
-  </a>
+  <div class="main-container">
+    <div class="mypage-header">
+      <div class="user-welcome">
+        <div class="welcome-icon">👋</div>
+        <div class="welcome-content">
+          <h1 id="welcome" class="welcome-title">読み込み中...</h1>
+          <p class="welcome-subtitle">あなたの構成を管理しましょう</p>
+        </div>
+      </div>
+      <div class="header-actions">
+        <button onclick="logout()" class="logout-button">
+          <span class="button-icon">🚪</span>
+          ログアウト
+        </button>
+      </div>
+    </div>
 
-  <div id="pc-list">
-    <!-- ここにタスクが入る -->
+    <div class="mypage-content">
+      <div class="section-header">
+        <h2 class="section-title">
+          <span class="section-icon">🖥️</span>
+          あなたの構成一覧
+        </h2>
+        <a href="/index.html" class="create-button">
+          <span class="button-icon">➕</span>
+          新しい構成を作成
+        </a>
+      </div>
+
+      <div class="builds-container">
+        <div id="pc-list" class="builds-grid">
+          <!-- ここに構成リストが入る -->
+        </div>
+        
+        <div id="loading-state" class="loading-state">
+          <div class="loading-spinner-large">⏳</div>
+          <p>構成を読み込み中...</p>
+        </div>
+        
+        <div id="empty-state" class="empty-state" style="display: none;">
+          <div class="empty-icon">📦</div>
+          <h3>まだ構成がありません</h3>
+          <p>最初のPC構成を作成してみましょう！</p>
+          <a href="/index.html" class="start-building-button">
+            <span class="button-icon">🔧</span>
+            構成作成を開始
+          </a>
+        </div>
+      </div>
+    </div>
   </div>
 
 </body>
@@ -35,29 +82,86 @@
     handleLoginError()
   }
 
+  const loadingState = document.getElementById('loading-state')
+  const emptyState = document.getElementById('empty-state')
+  const pcList = document.getElementById('pc-list')
 
   // ユーザー情報を取得
   getMeApi().then(data => {
-    // console.log("data:", data)
     const welcomeH1 = document.getElementById('welcome')
     welcomeH1.innerText = `ようこそ、${data.nickname}さん`
+  }).catch(error => {
+    console.error('ユーザー情報取得エラー:', error)
+    const welcomeH1 = document.getElementById('welcome')
+    welcomeH1.innerText = 'ようこそ'
   })
 
-  // タスク一覧を取得
+  // 構成一覧を取得
   getAllPcApi()
     .then((data) => {
-      const pcList = document.getElementById('pc-list')
+      loadingState.style.display = 'none'
+      
+      if (data.length === 0) {
+        emptyState.style.display = 'block'
+        return
+      }
+
+      pcList.innerHTML = ''
       data.forEach(pc => {
-        const pcDiv = document.createElement('div')
-        pcDiv.innerHTML = `
-      <a href="/build.html?buildId=${pc.id}">
-        ${pc.name}
-      </a>
-      `
-        pcList.appendChild(pcDiv)
+        const pcCard = document.createElement('div')
+        pcCard.className = 'build-card'
+        pcCard.innerHTML = `
+          <div class="build-card-header">
+            <div class="build-icon">🖥️</div>
+            <div class="build-info">
+              <h3 class="build-name">${pc.name || 'PC構成'}</h3>
+              <p class="build-date">作成日: ${pc.created_at ? new Date(pc.created_at).toLocaleDateString('ja-JP') : '不明'}</p>
+            </div>
+          </div>
+          <div class="build-actions">
+            <a href="/build.html?buildId=${pc.id}" class="view-button">
+              <span class="button-icon">👁️</span>
+              詳細を見る
+            </a>
+            <button onclick="deleteBuild(${pc.id}, '${pc.name || 'この構成'}')" class="delete-button">
+              <span class="button-icon">🗑️</span>
+              削除
+            </button>
+          </div>
+        `
+        pcList.appendChild(pcCard)
       })
     })
+    .catch((error) => {
+      console.error('構成取得エラー:', error)
+      loadingState.style.display = 'none'
+      pcList.innerHTML = `
+        <div class="error-card">
+          <div class="error-icon">⚠️</div>
+          <h3>構成の読み込みに失敗しました</h3>
+          <p>${error.message}</p>
+          <button onclick="location.reload()" class="retry-button">
+            <span class="button-icon">🔄</span>
+            再試行
+          </button>
+        </div>
+      `
+    })
 
+  // 構成削除機能
+  function deleteBuild(buildId, buildName) {
+    if (confirm(`「${buildName}」を削除しますか？この操作は取り消せません。`)) {
+      // 削除APIを呼び出す（APIが用意されている場合）
+      // deleteBuildApi(buildId).then(() => {
+      //   location.reload()
+      // }).catch(error => {
+      //   alert('削除に失敗しました: ' + error.message)
+      // })
+      
+      // 現在はアラートのみ表示
+      alert('削除機能は開発中です')
+    }
+  }
 </script>
 
 </html>

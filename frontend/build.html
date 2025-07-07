@@ -3,7 +3,7 @@
 	<head>
 		<meta charset="UTF-8" />
 		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
-		<title>マイクロブログ 記事詳細</title>
+		<title>構成詳細 - だれでも自作PCナビ</title>
 		<link rel="stylesheet" href="/css/general.css" />
 
 		<!-- jsファイルをimport -->
@@ -11,26 +11,92 @@
 		<script type="text/javascript" src="/js/api.js"></script>
 	</head>
 	<body>
-		<div class="container">
-			<h1>構成詳細</h1>
-			<div id="message-area" class="hidden"></div>
-            <div id="name"></div>
-			<table id="build-detail">
-            </table>
-            <button onclick="move()">戻る</button>
+		<div class="header">
+			<div class="header-content">
+				<img src="/img/logo.png" alt="Logo" class="logo" />
+				<a href="/index.html" class="site-title-link">
+					<h1 class="site-title">だれでも自作PCナビ</h1>
+				</a>
+			</div>
+		</div>
+
+		<div class="main-container">
+			<div class="page-header">
+				<h1 class="page-title">PC構成詳細</h1>
+				<p class="page-subtitle">保存された構成の詳細をご確認ください</p>
+			</div>
+
+			<div class="build-detail-container">
+				<div id="message-area" class="hidden"></div>
+				
+				<div class="build-detail-header">
+					<div id="build-name" class="build-name-section">
+						<div class="build-icon-large">🖥️</div>
+						<div class="loading-text">構成情報を読み込み中...</div>
+					</div>
+					<div class="build-actions">
+						<button onclick="move()" class="back-button">
+							<span class="button-icon">←</span>
+							マイページに戻る
+						</button>
+					</div>
+				</div>
+
+				<div class="build-content">
+					<div class="build-summary">
+						<div class="build-summary-header">
+							<h2>パーツ構成</h2>
+							<div class="build-status">
+								<span class="status-indicator" id="status-indicator">読み込み中...</span>
+							</div>
+						</div>
+						
+						<div class="build-grid" id="build-detail">
+							<!-- ここに構成パーツが入る -->
+						</div>
+					</div>
+				</div>
+			</div>
 		</div>
 
 		<script>
 			const API_BASE_URL = "http://localhost:8000";
 			const BUILD_PATH = "build";
 			const buildDetail = document.getElementById("build-detail");
+			const statusIndicator = document.getElementById("status-indicator");
+			const buildNameSection = document.getElementById("build-name");
 
 			// URLから記事IDを取得する
 			const urlParams = new URLSearchParams(window.location.search);
 			const buildId = urlParams.get("buildId");
 
+			// パーツカテゴリと表示名のマッピング
+			const partCategories = {
+				cpu: { name: "CPU", icon: "🧠" },
+				gpu: { name: "GPU", icon: "🎮" },
+				memory: { name: "メモリ", icon: "💾" },
+				storage: { name: "ストレージ", icon: "💿" },
+				mb: { name: "マザーボード", icon: "🔧" },
+				cooler: { name: "クーラー", icon: "❄️" },
+				psu: { name: "電源ユニット", icon: "⚡" },
+				case: { name: "ケース", icon: "📦" },
+				OS: { name: "OS", icon: "💻" }
+			};
+
 			if (!buildId) {
-				buildDetail.innerHTML = `<p class="error">構成IDが指定されていません。</p>`;
+				buildDetail.innerHTML = `
+					<div class="error-card">
+						<div class="error-icon">⚠️</div>
+						<h3>構成IDが指定されていません</h3>
+						<p>正しいURLからアクセスしてください</p>
+						<button onclick="move()" class="retry-button">
+							<span class="button-icon">←</span>
+							マイページに戻る
+						</button>
+					</div>
+				`;
+				statusIndicator.textContent = "エラー";
+				statusIndicator.className = "status-indicator empty";
 			} else {
 				const BUILD_DETAIL_URL = `${API_BASE_URL}/${BUILD_PATH}/${buildId}`;
 
@@ -47,86 +113,186 @@
 						}
 						const jsonObj = await response.json();
 						if (Object.keys(jsonObj).length == 0) {
-							buildDetail.innerHTML =
-								"<p class='error'>該当する構成が見つかりません。</p>";
+							buildDetail.innerHTML = `
+								<div class="error-card">
+									<div class="error-icon">🔍</div>
+									<h3>該当する構成が見つかりません</h3>
+									<p>構成が削除されているか、アクセス権限がない可能性があります</p>
+									<button onclick="move()" class="retry-button">
+										<span class="button-icon">←</span>
+										マイページに戻る
+									</button>
+								</div>
+							`;
 							return null;
 						} else {
-							const ids = [
-								jsonObj.cpu,
-								jsonObj.gpu,
-								jsonObj.memory,
-								jsonObj.storage,
-								jsonObj.mb,
-								jsonObj.cooler,
-								jsonObj.psu,
-								jsonObj.case,
-								jsonObj.OS,
-                                jsonObj.name,
-							].filter((id) => id && id !== "null" && id !== "undefined");
-							return ids;
+							// 構成名を表示
+							const buildName = jsonObj.name || 'PC構成';
+							buildNameSection.innerHTML = `
+								<div class="build-icon-large">🖥️</div>
+								<div class="build-info-large">
+									<h1 class="build-title">${buildName}</h1>
+									<p class="build-subtitle">作成日: ${jsonObj.created_at ? new Date(jsonObj.created_at).toLocaleDateString('ja-JP') : '不明'}</p>
+								</div>
+							`;
+
+							const partIds = {
+								cpu: jsonObj.cpu,
+								gpu: jsonObj.gpu,
+								memory: jsonObj.memory,
+								storage: jsonObj.storage,
+								mb: jsonObj.mb,
+								cooler: jsonObj.cooler,
+								psu: jsonObj.psu,
+								case: jsonObj.case,
+								OS: jsonObj.OS
+							};
+
+							// nullや未定義でないIDのみをフィルタリング
+							const validParts = Object.entries(partIds).filter(([key, id]) => 
+								id && id !== "null" && id !== "undefined"
+							);
+
+							return validParts;
 						}
 					} catch (error) {
 						console.error("エラー:", error);
-						buildDetail.innerHTML = `<p class='error'>データ取得に失敗しました。<br>${error.message}</p>`;
+						buildDetail.innerHTML = `
+							<div class="error-card">
+								<div class="error-icon">⚠️</div>
+								<h3>データ取得に失敗しました</h3>
+								<p>${error.message}</p>
+								<button onclick="location.reload()" class="retry-button">
+									<span class="button-icon">🔄</span>
+									再試行
+								</button>
+							</div>
+						`;
+						statusIndicator.textContent = "エラー";
+						statusIndicator.className = "status-indicator empty";
 						return null;
 					}
 				}
 
-				// ids取得後にパーツ情報を順番に取得・表示
+				// 構成取得後にパーツ情報を順番に取得・表示
 				(async () => {
-					const data = await fetchPartsId();
-                    const name = data[9];
-                    const ids = data.slice(0, 8); // 最初の9つのIDを取得
-                    const nameDiv = document.getElementById("name");
-                    nameDiv.innerHTML = `<h2>${name}の構成</h2>`;
-					if (ids) {
-						buildDetail.innerHTML = `
-                <tr>
-                    <th>メーカー</th>
-                    <th>商品名</th>
-                    <th>商品画像</th>
-                    <th>情報</th>
-                </tr>
-            `;
-            console.log("IDs:", ids);
-						await fetchProductsInOrder(ids);
+					const validParts = await fetchPartsId();
+					if (validParts) {
+						await fetchProductsInOrder(validParts);
 					}
 				})();
 			}
 
-			async function fetchProductsInOrder(ids) {
-				for (const id of ids) {
-					const ENDPOINT = `product-by-id/${id}`;
-					const DB_URL = `${API_BASE_URL}/${ENDPOINT}`;
+			async function fetchProductsInOrder(validParts) {
+				buildDetail.innerHTML = '';
+				let completedParts = 0;
+
+				for (const [category, id] of validParts) {
+					const categoryInfo = partCategories[category];
+					
+					// パーツカードのプレースホルダーを作成
+					const partCard = document.createElement("div");
+					partCard.className = "build-part-card loading";
+					partCard.id = `part-${category}`;
+					partCard.innerHTML = `
+						<div class="part-category">
+							<span class="part-icon">${categoryInfo.icon}</span>
+							<span class="part-name">${categoryInfo.name}</span>
+						</div>
+						<div class="part-content">
+							<div class="loading-spinner">読み込み中...</div>
+						</div>
+					`;
+					buildDetail.appendChild(partCard);
+					
 					try {
+						const ENDPOINT = `product-by-id/${id}`;
+						const DB_URL = `${API_BASE_URL}/${ENDPOINT}`;
 						const response = await fetch(DB_URL, {
 							method: "GET",
 							headers: {
 								Authorization: `Bearer ${localStorage.getItem("token")}`,
 							},
 						});
+						
 						if (!response.ok) {
 							throw new Error(`HTTPエラー! ステータス: ${response.status}`);
 						}
+						
 						const jsonObj = await response.json();
 						if (Object.keys(jsonObj).length == 0) {
-							buildDetail.innerHTML += "<tr><td colspan='4'>該当なし</td></tr>";
+							partCard.className = "build-part-card error";
+							partCard.innerHTML = `
+								<div class="part-category">
+									<span class="part-icon">${categoryInfo.icon}</span>
+									<span class="part-name">${categoryInfo.name}</span>
+								</div>
+								<div class="part-content">
+									<div class="error-message">
+										<span>該当するパーツが見つかりません</span>
+									</div>
+								</div>
+							`;
 						} else {
-							(jsonObj.length ? jsonObj : [jsonObj]).forEach((product) => {
-								const productDiv = document.createElement("tr");
-								productDiv.innerHTML = `
-                            <th>${product.maker}</th>
-                            <th>${product.name}</th>
-                            <th><img src="${product.image_url}" alt="${product.name}" style="width: 100px; height: auto;"></th>
-                            <th><a href="${product.information_url}">ココ</a></th>
-                        `;
-								buildDetail.appendChild(productDiv);
-							});
+							const product = jsonObj.length ? jsonObj[0] : jsonObj;
+							
+							// パーツカードを更新
+							partCard.className = "build-part-card loaded";
+							partCard.innerHTML = `
+								<div class="part-category">
+									<span class="part-icon">${categoryInfo.icon}</span>
+									<span class="part-name">${categoryInfo.name}</span>
+								</div>
+								<div class="part-content">
+									<div class="part-image">
+										<img src="${product.image_url}" alt="${product.name}">
+									</div>
+									<div class="part-info">
+										<div class="part-maker">${product.maker}</div>
+										<h3 class="part-product-name">${product.name}</h3>
+										<div class="part-actions">
+											<a href="${product.information_url}" class="info-link" target="_blank">詳細情報</a>
+										</div>
+									</div>
+								</div>
+							`;
+							
+							completedParts++;
 						}
 					} catch (error) {
-						console.error("エラー:", error);
-						buildDetail.innerHTML += `<tr><td colspan='4' style="color:red;">データ取得に失敗しました。<br>${error.message}</td></tr>`;
+						console.error(`${category}エラー:`, error);
+						partCard.className = "build-part-card error";
+						partCard.innerHTML = `
+							<div class="part-category">
+								<span class="part-icon">${categoryInfo.icon}</span>
+								<span class="part-name">${categoryInfo.name}</span>
+							</div>
+							<div class="part-content">
+								<div class="error-message">
+									<span>データ取得に失敗しました</span>
+								</div>
+							</div>
+						`;
 					}
+				}
+
+				// ステータス更新
+				if (completedParts === validParts.length && validParts.length > 0) {
+					statusIndicator.textContent = `構成完了 (${completedParts}パーツ)`;
+					statusIndicator.className = "status-indicator complete";
+				} else if (validParts.length === 0) {
+					statusIndicator.textContent = "パーツ情報なし";
+					statusIndicator.className = "status-indicator empty";
+					buildDetail.innerHTML = `
+						<div class="empty-build">
+							<div class="empty-icon">📦</div>
+							<h3>パーツ情報がありません</h3>
+							<p>この構成にはパーツ情報が保存されていません</p>
+						</div>
+					`;
+				} else {
+					statusIndicator.textContent = `一部読み込み完了 (${completedParts}/${validParts.length}パーツ)`;
+					statusIndicator.className = "status-indicator partial";
 				}
 			}
 
