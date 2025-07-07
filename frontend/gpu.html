@@ -8,10 +8,47 @@
 	</head>
 
 	<body>
-		<h2>GPU一覧</h2>
-		<table id="gpu-list">
-			<!-- ここにタスクが入る -->
-		</table>
+		<div class="header">
+			<div class="header-content">
+				<img src="/img/logo.png" alt="Logo" class="logo" />
+				<h1 class="site-title">PC Builder</h1>
+			</div>
+		</div>
+		
+		<div class="main-container">
+			<div class="page-header">
+				<h1 class="page-title">GPU一覧</h1>
+				<p class="page-subtitle">お好みのGPUを選択してください</p>
+			</div>
+			
+			<div class="products-container">
+				<div class="filters-sidebar">
+					<h3>絞り込み</h3>
+					<div class="filter-group">
+						<label>メーカー</label>
+						<select id="maker-filter">
+							<option value="">すべて</option>
+						</select>
+					</div>
+					<div class="filter-group">
+						<label>チップセット</label>
+						<select id="chipset-filter">
+							<option value="">すべて</option>
+						</select>
+					</div>
+					<div class="filter-group">
+						<label>VRAM</label>
+						<select id="vram-filter">
+							<option value="">すべて</option>
+						</select>
+					</div>
+				</div>
+				
+				<div class="products-grid" id="gpu-list">
+					<!-- ここに商品が入る -->
+				</div>
+			</div>
+		</div>
 
 		<script>
 			localStorage.removeItem("gpu")
@@ -42,52 +79,64 @@
 					return response.json();
 				})
 				.then((jsonObj) => {
-					productsList.innerHTML = `
-        <tr>
-        <th>メーカー</th>
-        <th>商品名</th>
-        <th>商品画像</th>
-        <th>情報</th>
-        <th>搭載チップ</th>
-        <th>インターフェース</th>
-        <th>VRAM</th>
-        <th>クロック周波数</th>
-        <th>サイズ(幅×高さ×厚さ)</th>
-        <th>画面出力</th>
-        <th>TDP</th>
-        ${showEvaluation ? "<th>評価</th>" : ""}
-        <th>選択</th>
-        </tr>
-        `;
+					productsList.innerHTML = '';
 					jsonObj.forEach((product) => {
 						let evaluMark = "";
+						let evaluationClass = "";
 						if (showEvaluation) {
 							evaluMark = "×";
+							evaluationClass = "evaluation-bad";
 							if (product.evaluation >= 0.8) {
 								evaluMark = "〇";
+								evaluationClass = "evaluation-good";
 							} else if (product.evaluation >= 0.6) {
 								evaluMark = "－";
+								evaluationClass = "evaluation-ok";
 							}
 						}
 
-						const productDiv = document.createElement("tr");
+						const productDiv = document.createElement("div");
+						productDiv.className = "product-card";
 						productDiv.innerHTML = `
-            <th>${product.maker}</th>
-            <th>${product.name}</th>
-            <th><img src="${product.image_url}" alt="${
-							product.name
-						}" style="width: 100px; height: auto;"></th>
-            <th><a href="${product.information_url}">ココ</a></th>
-            <th>${product.chipset_id}</th>
-            <th>${product.interface}</th>
-            <th>${product.vram}</th>
-            <th>ベース:${product.base_clock} GHz<br>ブースト:${product.boost_clock} GHz</th>
-            <th>${product.width}mm×${product.height}mm×${product.depth}mm</th>
-            <th>HDMI×${product.HDMI}<br>DisplayPort×${product.DP}</th>
-            <th>${product.tdp}W</th>
-            ${showEvaluation ? `<th>${evaluMark}</th>` : ""}
-            <th><button onclick="move(${product.id})">選択</button></th>
-          `;
+							<div class="product-image">
+								<img src="${product.image_url}" alt="${product.name}">
+								${showEvaluation ? `<div class="evaluation-badge ${evaluationClass}">${evaluMark}</div>` : ""}
+							</div>
+							<div class="product-info">
+								<div class="product-maker">${product.maker}</div>
+								<h3 class="product-name">${product.name}</h3>
+								<div class="product-specs">
+									<div class="spec-item">
+										<span class="spec-label">チップセット</span>
+										<span class="spec-value">${product.chipset_id}</span>
+									</div>
+									<div class="spec-item">
+										<span class="spec-label">VRAM</span>
+										<span class="spec-value">${product.vram}</span>
+									</div>
+									<div class="spec-item">
+										<span class="spec-label">クロック</span>
+										<span class="spec-value">ベース:${product.base_clock}GHz / ブースト:${product.boost_clock}GHz</span>
+									</div>
+									<div class="spec-item">
+										<span class="spec-label">サイズ</span>
+										<span class="spec-value">${product.width}×${product.height}×${product.depth}mm</span>
+									</div>
+									<div class="spec-item">
+										<span class="spec-label">出力</span>
+										<span class="spec-value">HDMI×${product.HDMI} / DP×${product.DP}</span>
+									</div>
+									<div class="spec-item">
+										<span class="spec-label">TDP</span>
+										<span class="spec-value">${product.tdp}W</span>
+									</div>
+								</div>
+								<div class="product-actions">
+									<a href="${product.information_url}" class="info-button" target="_blank">詳細情報</a>
+									<button onclick="move(${product.id})" class="select-button">選択する</button>
+								</div>
+							</div>
+						`;
 						productsList.appendChild(productDiv);
 					});
 				})

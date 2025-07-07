@@ -8,10 +8,41 @@
   </head>
 
   <body>
-    <h2>商品一覧</h2>
-    <table id="products-list">
-      <!-- ここにタスクが入る -->
-    </table>
+    <div class="header">
+      <div class="header-content">
+        <img src="/img/logo.png" alt="Logo" class="logo" />
+        <h1 class="site-title">PC Builder</h1>
+      </div>
+    </div>
+    
+    <div class="main-container">
+      <div class="page-header">
+        <h1 class="page-title">全商品一覧</h1>
+        <p class="page-subtitle">すべてのPCパーツをカテゴリ別に表示</p>
+      </div>
+      
+      <div class="products-container">
+        <div class="filters-sidebar">
+          <h3>絞り込み</h3>
+          <div class="filter-group">
+            <label>カテゴリ</label>
+            <select id="category-filter">
+              <option value="">すべて</option>
+            </select>
+          </div>
+          <div class="filter-group">
+            <label>メーカー</label>
+            <select id="maker-filter">
+              <option value="">すべて</option>
+            </select>
+          </div>
+        </div>
+        
+        <div class="products-grid" id="products-list">
+          <!-- ここに商品が入る -->
+        </div>
+      </div>
+    </div>
 
     <script>
       const API_BASE_URL = "http://localhost:8000";
@@ -32,26 +63,24 @@
           return response.json();
         })
         .then((jsonObj) => {
-          productsList.innerHTML = `
-        <tr>
-        <th>商品ID</th>
-        <th>メーカー</th>
-        <th>商品名</th>
-        <th>商品画像</th>
-        <th>情報</th>
-        <th>カテゴリ</th>
-        </tr>
-        `;
+          productsList.innerHTML = '';
           jsonObj.forEach((product) => {
-            const productDiv = document.createElement("tr");
+            const productDiv = document.createElement("div");
+            productDiv.className = "product-card";
             productDiv.innerHTML = `
-            <th>${product.id}</th>
-            <th>${product.maker}</th>
-            <th>${product.name}</th>
-            <th><img src="${product.image_url}" alt="${product.name}" style="width: 100px; height: auto;"></th>
-            <th><a href="${product.information_url}">ココ</a></th>
-            <th>${product.category}</th>
-          `;
+              <div class="product-image">
+                <img src="${product.image_url}" alt="${product.name}">
+                <div class="category-badge">${product.category}</div>
+              </div>
+              <div class="product-info">
+                <div class="product-maker">${product.maker}</div>
+                <h3 class="product-name">${product.name}</h3>
+                <div class="product-id">商品ID: ${product.id}</div>
+                <div class="product-actions">
+                  <a href="${product.information_url}" class="info-button" target="_blank">詳細情報</a>
+                </div>
+              </div>
+            `;
             productsList.appendChild(productDiv);
           });
         })
