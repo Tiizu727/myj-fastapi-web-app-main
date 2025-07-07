@@ -1,34 +1,39 @@
 <!DOCTYPE html>
 <html lang="ja">
-  <head>
-    <meta charset="UTF-8" />
-    <title>トップページ</title>
-    <!-- cssファイルをimport -->
-    <link rel="stylesheet" href="/css/general.css" />
-  </head>
+	<head>
+		<meta charset="UTF-8" />
+		<title>トップページ</title>
+		<!-- cssファイルをimport -->
+		<link rel="stylesheet" href="/css/general.css" />
+	</head>
 
-  <body>
-    <div>
-      <h1 id="welcome"></h1>
+	<body>
+    <div class="header">
+      <img src="/img/logo.png" alt="Logo" height="100px" width="auto" />
     </div>
+		<div class="contain">
+			<div>
+				<h1 id="welcome"></h1>
+			</div>
 
-    <h2>商品表示</h2>
-    <a href="/display.html">商品一覧ページへ</a>
-    <h2>パーツを選ぶ</h2>
-    <a href="/cpu.html">CPUから選ぶ</a>
-    <a href="/gpu.html">GPUから選ぶ</a>
-    <a herf="/game.html">ゲームから選ぶ</a>
+			<h2>商品表示</h2>
+			<a href="/display.html">商品一覧ページへ</a>
+			<h2>パーツを選ぶ</h2>
+			<a href="/cpu.html">CPUから選ぶ</a>
+			<a href="/gpu.html">GPUから選ぶ</a>
+			<a href="/game.html">ゲームから選ぶ</a>
+		</div>
 
-    <script>
-      localStorage.removeItem("cpu");
-      localStorage.removeItem("gpu");
-      localStorage.removeItem("memory");
-      localStorage.removeItem("storage");
-      localStorage.removeItem("mb");
-      localStorage.removeItem("cooler");
-      localStorage.removeItem("psu");
-      localStorage.removeItem("case");
-      localStorage.removeItem("os");
-    </script>
-  </body>
+		<script>
+			localStorage.removeItem("cpu");
+			localStorage.removeItem("gpu");
+			localStorage.removeItem("memory");
+			localStorage.removeItem("storage");
+			localStorage.removeItem("mb");
+			localStorage.removeItem("cooler");
+			localStorage.removeItem("psu");
+			localStorage.removeItem("case");
+			localStorage.removeItem("os");
+		</script>
+	</body>
 </html>

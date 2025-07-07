@@ -104,3 +104,15 @@ def get_user_builds(
 , current_user: dict = Depends(get_current_user)
 ):
     return parts_cruds.get_user_builds(db, current_user.get("id"))
+
+@router.get("/build/{build_id}")
+def get_build_by_id(
+    build_id: int, db: Session = Depends(get_db)
+):
+    return parts_cruds.get_build(db, build_id)
+
+@router.get("/gpu-by-game/{game_id}")
+def get_gpu_by_game(
+    game_id: int, db: Session = Depends(get_db)
+):
+    return parts_cruds.get_gpu_by_game(db, game_id)

@@ -14,11 +14,12 @@
 		</table>
 
 		<script>
+			localStorage.removeItem("gpu");
 			const params = new URLSearchParams(window.location.search);
-            const game_id = params.get("game");
-            
+			const game_id = params.get("game");
+
 			const API_BASE_URL = "http://localhost:8000";
-			let ENDPOINT = "";
+			let ENDPOINT = `gpu-by-game/${game_id}`;
 
 			const GPU_URL = `${API_BASE_URL}/${ENDPOINT}`;
 			const productsList = document.getElementById("gpu-list");
@@ -53,14 +54,11 @@
         </tr>
         `;
 					jsonObj.forEach((product) => {
-						let linkUrl = `/cpu.html?g=${product.id}`;
 						const productDiv = document.createElement("tr");
 						productDiv.innerHTML = `
             <th>${product.maker}</th>
             <th>${product.name}</th>
-            <th><img src="${product.image_url}" alt="${
-							product.name
-						}" style="width: 100px; height: auto;"></th>
+            <th><img src="${product.image_url}" alt="${product.name}" style="width: 100px; height: auto;"></th>
             <th><a href="${product.information_url}">ココ</a></th>
             <th>${product.chipset_id}</th>
             <th>${product.interface}</th>
@@ -69,8 +67,7 @@
             <th>${product.width}mm×${product.height}mm×${product.depth}mm</th>
             <th>HDMI×${product.HDMI}<br>DisplayPort×${product.DP}</th>
             <th>${product.tdp}W</th>
-            ${showEvaluation ? `<th>${evaluMark}</th>` : ""}
-            <th><button onclick="location.href='${linkUrl}'">選択</button></th>
+            <th><button onclick="move(${product.id})">選択</button></th>
           `;
 						productsList.appendChild(productDiv);
 					});
@@ -79,6 +76,11 @@
 					console.error("エラー:", error);
 					productsList.innerHTML = `<p style="color:red;">データ取得に失敗しました。<br>${error.message}</p>`;
 				});
+
+			function move(id) {
+				localStorage.setItem("gpu", id);
+				location.href = "/cpu.html";
+			}
 		</script>
 	</body>
 </html>

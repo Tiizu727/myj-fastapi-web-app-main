@@ -522,3 +522,27 @@ def get_user_builds(db: Session, user_id: int):
     print(f"DB操作結果: {result}")
 
     return result
+
+def get_gpu_by_game(db: Session, game_id: int):
+    sql = text(
+        """
+        SELECT *
+        FROM products p
+        INNER JOIN gpu_specs gs ON p.chipset_id = gs.chipset_id
+        INNER JOIN gpu_performance gp ON p.id = gp.product_id
+        WHERE gs.passmark > (
+            SELECT gs2.passmark
+            FROM game_gpu gg
+            INNER JOIN gpu_specs gs2 ON gg.gpu_id = gs2.chipset_id
+            WHERE gg.id = :game_id
+            LIMIT 1
+        )
+        ORDER BY gs.passmark
+        """
+    )
+
+    print(f"SQL: {sql}")
+    result = db.execute(sql, {"game_id": game_id}).mappings().all()
+    print(f"DB操作結果: {result}")
+
+    return result

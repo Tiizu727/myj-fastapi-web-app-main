@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="ja">
+	<head>
+		<meta charset="UTF-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+		<title>マイクロブログ 記事詳細</title>
+		<link rel="stylesheet" href="/css/general.css" />
+
+		<!-- jsファイルをimport -->
+		<script type="text/javascript" src="/js/general.js"></script>
+		<script type="text/javascript" src="/js/api.js"></script>
+	</head>
+	<body>
+		<div class="container">
+			<h1>構成詳細</h1>
+			<div id="message-area" class="hidden"></div>
+            <div id="name"></div>
+			<table id="build-detail">
+            </table>
+            <button onclick="move()">戻る</button>
+		</div>
+
+		<script>
+			const API_BASE_URL = "http://localhost:8000";
+			const BUILD_PATH = "build";
+			const buildDetail = document.getElementById("build-detail");
+
+			// URLから記事IDを取得する
+			const urlParams = new URLSearchParams(window.location.search);
+			const buildId = urlParams.get("buildId");
+
+			if (!buildId) {
+				buildDetail.innerHTML = `<p class="error">構成IDが指定されていません。</p>`;
+			} else {
+				const BUILD_DETAIL_URL = `${API_BASE_URL}/${BUILD_PATH}/${buildId}`;
+
+				async function fetchPartsId() {
+					try {
+						const response = await fetch(BUILD_DETAIL_URL, {
+							method: "GET",
+							headers: {
+								Authorization: `Bearer ${localStorage.getItem("token")}`,
+							},
+						});
+						if (!response.ok) {
+							throw new Error(`HTTPエラー! ステータス: ${response.status}`);
+						}
+						const jsonObj = await response.json();
+						if (Object.keys(jsonObj).length == 0) {
+							buildDetail.innerHTML =
+								"<p class='error'>該当する構成が見つかりません。</p>";
+							return null;
+						} else {
+							const ids = [
+								jsonObj.cpu,
+								jsonObj.gpu,
+								jsonObj.memory,
+								jsonObj.storage,
+								jsonObj.mb,
+								jsonObj.cooler,
+								jsonObj.psu,
+								jsonObj.case,
+								jsonObj.OS,
+                                jsonObj.name,
+							].filter((id) => id && id !== "null" && id !== "undefined");
+							return ids;
+						}
+					} catch (error) {
+						console.error("エラー:", error);
+						buildDetail.innerHTML = `<p class='error'>データ取得に失敗しました。<br>${error.message}</p>`;
+						return null;
+					}
+				}
+
+				// ids取得後にパーツ情報を順番に取得・表示
+				(async () => {
+					const data = await fetchPartsId();
+                    const name = data[9];
+                    const ids = data.slice(0, 8); // 最初の9つのIDを取得
+                    const nameDiv = document.getElementById("name");
+                    nameDiv.innerHTML = `<h2>${name}の構成</h2>`;
+					if (ids) {
+						buildDetail.innerHTML = `
+                <tr>
+                    <th>メーカー</th>
+                    <th>商品名</th>
+                    <th>商品画像</th>
+                    <th>情報</th>
+                </tr>
+            `;
+            console.log("IDs:", ids);
+						await fetchProductsInOrder(ids);
+					}
+				})();
+			}
+
+			async function fetchProductsInOrder(ids) {
+				for (const id of ids) {
+					const ENDPOINT = `product-by-id/${id}`;
+					const DB_URL = `${API_BASE_URL}/${ENDPOINT}`;
+					try {
+						const response = await fetch(DB_URL, {
+							method: "GET",
+							headers: {
+								Authorization: `Bearer ${localStorage.getItem("token")}`,
+							},
+						});
+						if (!response.ok) {
+							throw new Error(`HTTPエラー! ステータス: ${response.status}`);
+						}
+						const jsonObj = await response.json();
+						if (Object.keys(jsonObj).length == 0) {
+							buildDetail.innerHTML += "<tr><td colspan='4'>該当なし</td></tr>";
+						} else {
+							(jsonObj.length ? jsonObj : [jsonObj]).forEach((product) => {
+								const productDiv = document.createElement("tr");
+								productDiv.innerHTML = `
+                            <th>${product.maker}</th>
+                            <th>${product.name}</th>
+                            <th><img src="${product.image_url}" alt="${product.name}" style="width: 100px; height: auto;"></th>
+                            <th><a href="${product.information_url}">ココ</a></th>
+                        `;
+								buildDetail.appendChild(productDiv);
+							});
+						}
+					} catch (error) {
+						console.error("エラー:", error);
+						buildDetail.innerHTML += `<tr><td colspan='4' style="color:red;">データ取得に失敗しました。<br>${error.message}</td></tr>`;
+					}
+				}
+			}
+
+            function move() {
+				location.href = `./mypage.html`;
+			}
+		</script>
+	</body>
+</html>
