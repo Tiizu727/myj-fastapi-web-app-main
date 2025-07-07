@@ -44,6 +44,16 @@ body {
   text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
 }
 
+.site-title-link {
+  text-decoration: none;
+  color: inherit;
+  transition: opacity 0.3s ease;
+}
+
+.site-title-link:hover {
+  opacity: 0.8;
+}
+
 /* メインコンテナ */
 .main-container {
   max-width: 1200px;
