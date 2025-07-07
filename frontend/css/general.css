@@ -907,6 +907,129 @@ body {
   display: none;
 }
 
+/* フィルタリング機能用のスタイル */
+.products-container {
+  display: flex;
+  gap: 2rem;
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 1rem;
+}
+
+.filters-sidebar {
+  width: 280px;
+  background: #ffffff;
+  border-radius: 12px;
+  padding: 1.5rem;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
+  height: fit-content;
+  position: sticky;
+  top: 2rem;
+}
+
+.filters-sidebar h3 {
+  font-size: 1.2rem;
+  font-weight: 600;
+  color: #2c3e50;
+  margin-bottom: 1.5rem;
+  padding-bottom: 0.5rem;
+  border-bottom: 2px solid #e74c3c;
+}
+
+.filter-group {
+  margin-bottom: 1.5rem;
+}
+
+.filter-group label {
+  display: block;
+  font-weight: 600;
+  color: #34495e;
+  margin-bottom: 0.5rem;
+  font-size: 0.9rem;
+}
+
+.filter-group select {
+  width: 100%;
+  padding: 0.75rem;
+  border: 2px solid #e9ecef;
+  border-radius: 8px;
+  background: #ffffff;
+  font-size: 0.9rem;
+  color: #2c3e50;
+  transition: all 0.3s ease;
+}
+
+.filter-group select:focus {
+  outline: none;
+  border-color: #e74c3c;
+  box-shadow: 0 0 0 3px rgba(231, 76, 60, 0.1);
+}
+
+.filter-group select:hover {
+  border-color: #bdc3c7;
+}
+
+.search-box {
+  width: 100%;
+  padding: 0.75rem;
+  border: 2px solid #e9ecef;
+  border-radius: 8px;
+  background: #ffffff;
+  font-size: 0.9rem;
+  color: #2c3e50;
+  transition: all 0.3s ease;
+}
+
+.search-box:focus {
+  outline: none;
+  border-color: #e74c3c;
+  box-shadow: 0 0 0 3px rgba(231, 76, 60, 0.1);
+}
+
+.search-box::placeholder {
+  color: #95a5a6;
+}
+
+.filter-actions {
+  display: flex;
+  gap: 0.75rem;
+  margin-top: 1.5rem;
+  padding-top: 1.5rem;
+  border-top: 1px solid #e9ecef;
+}
+
+.reset-button {
+  flex: 1;
+  padding: 0.75rem;
+  background: #95a5a6;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-weight: 600;
+  font-size: 0.9rem;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.reset-button:hover {
+  background: #7f8c8d;
+  transform: translateY(-1px);
+}
+
+.result-count {
+  font-size: 0.9rem;
+  color: #7f8c8d;
+  margin-bottom: 1rem;
+  font-weight: 500;
+}
+
+.products-grid {
+  flex: 1;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 1.5rem;
+}
+
 /* 認証ページ */
 .auth-body {
   background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);

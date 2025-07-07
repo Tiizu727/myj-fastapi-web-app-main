@@ -27,6 +27,10 @@
 				<div class="filters-sidebar">
 					<h3>絞り込み</h3>
 					<div class="filter-group">
+						<label>キーワード検索</label>
+						<input type="text" id="search-input" class="search-box" placeholder="CPUを検索...">
+					</div>
+					<div class="filter-group">
 						<label>メーカー</label>
 						<select id="maker-filter">
 							<option value="">すべて</option>
@@ -38,14 +42,21 @@
 							<option value="">すべて</option>
 						</select>
 					</div>
+					<div class="filter-actions">
+						<button id="reset-filters" class="reset-button">リセット</button>
+					</div>
 				</div>
 				
-				<div class="products-grid" id="cpu-list">
-					<!-- ここに商品が入る -->
+				<div class="products-content">
+					<div id="result-count" class="result-count">読み込み中...</div>
+					<div class="products-grid" id="cpu-list">
+						<!-- ここに商品が入る -->
+					</div>
 				</div>
 			</div>
 		</div>
 
+		<script src="/js/filters.js"></script>
 		<script>
 			localStorage.removeItem("cpu")
 			const gpu_id = localStorage.getItem("gpu");
@@ -62,6 +73,65 @@
 			const CPU_URL = `${API_BASE_URL}/${CPU_ENDPOINT}`;
 			const productsList = document.getElementById("cpu-list");
 
+			let partsFilter;
+			let allProducts = [];
+
+			// フィルタリング結果を表示する関数
+			window.renderFilteredProducts = function(products) {
+				productsList.innerHTML = '';
+				products.forEach((product) => {
+					let evaluMark = "";
+					let evaluationClass = "";
+					if (showEvaluation) {
+						evaluMark = "×";
+						evaluationClass = "evaluation-bad";
+						if (product.evaluation >= 0.8) {
+							evaluMark = "〇";
+							evaluationClass = "evaluation-good";
+						} else if (product.evaluation >= 0.6) {
+							evaluMark = "－";
+							evaluationClass = "evaluation-ok";
+						}
+					}
+
+					const productDiv = document.createElement("div");
+					productDiv.className = "product-card";
+					productDiv.innerHTML = `
+						<div class="product-image">
+							<img src="${product.image_url}" alt="${product.name}">
+							${showEvaluation ? `<div class="evaluation-badge ${evaluationClass}">${evaluMark}</div>` : ""}
+						</div>
+						<div class="product-info">
+							<div class="product-maker">${product.maker}</div>
+							<h3 class="product-name">${product.name}</h3>
+							<div class="product-specs">
+								<div class="spec-item">
+									<span class="spec-label">ソケット</span>
+									<span class="spec-value">${product.socket_type}</span>
+								</div>
+								<div class="spec-item">
+									<span class="spec-label">コア/スレッド</span>
+									<span class="spec-value">${product.core}コア / ${product.thread}スレッド</span>
+								</div>
+								<div class="spec-item">
+									<span class="spec-label">クロック</span>
+									<span class="spec-value">ベース:${product.base_clock}GHz / ブースト:${product.boost_clock}GHz</span>
+								</div>
+								<div class="spec-item">
+									<span class="spec-label">TDP</span>
+									<span class="spec-value">${product.tdp}W</span>
+								</div>
+							</div>
+							<div class="product-actions">
+								<a href="${product.information_url}" class="info-button" target="_blank">詳細情報</a>
+								<button onclick="move(${product.id})" class="select-button">選択する</button>
+							</div>
+						</div>
+					`;
+					productsList.appendChild(productDiv);
+				});
+			};
+
 			fetch(CPU_URL, {
 				method: "GET",
 				headers: {
@@ -75,58 +145,13 @@
 					return response.json();
 				})
 				.then((jsonObj) => {
-					productsList.innerHTML = '';
-					jsonObj.forEach((product) => {
-						let evaluMark = "";
-						let evaluationClass = "";
-						if (showEvaluation) {
-							evaluMark = "×";
-							evaluationClass = "evaluation-bad";
-							if (product.evaluation >= 0.8) {
-								evaluMark = "〇";
-								evaluationClass = "evaluation-good";
-							} else if (product.evaluation >= 0.6) {
-								evaluMark = "－";
-								evaluationClass = "evaluation-ok";
-							}
-						}
-
-						const productDiv = document.createElement("div");
-						productDiv.className = "product-card";
-						productDiv.innerHTML = `
-							<div class="product-image">
-								<img src="${product.image_url}" alt="${product.name}">
-								${showEvaluation ? `<div class="evaluation-badge ${evaluationClass}">${evaluMark}</div>` : ""}
-							</div>
-							<div class="product-info">
-								<div class="product-maker">${product.maker}</div>
-								<h3 class="product-name">${product.name}</h3>
-								<div class="product-specs">
-									<div class="spec-item">
-										<span class="spec-label">ソケット</span>
-										<span class="spec-value">${product.socket_type}</span>
-									</div>
-									<div class="spec-item">
-										<span class="spec-label">コア/スレッド</span>
-										<span class="spec-value">${product.core}コア / ${product.thread}スレッド</span>
-									</div>
-									<div class="spec-item">
-										<span class="spec-label">クロック</span>
-										<span class="spec-value">ベース:${product.base_clock}GHz / ブースト:${product.boost_clock}GHz</span>
-									</div>
-									<div class="spec-item">
-										<span class="spec-label">TDP</span>
-										<span class="spec-value">${product.tdp}W</span>
-									</div>
-								</div>
-								<div class="product-actions">
-									<a href="${product.information_url}" class="info-button" target="_blank">詳細情報</a>
-									<button onclick="move(${product.id})" class="select-button">選択する</button>
-								</div>
-							</div>
-						`;
-						productsList.appendChild(productDiv);
-					});
+					allProducts = jsonObj;
+					
+					// フィルタリング機能を初期化
+					partsFilter = new PartsFilter('products-container', allProducts);
+					
+					// 初期表示
+					renderFilteredProducts(allProducts);
 				})
 				.catch((error) => {
 					console.error("エラー:", error);
@@ -134,7 +159,7 @@
 				});
 
 			function move(id) {
-        localStorage.setItem("cpu", id);
+		        localStorage.setItem("cpu", id);
 				if (gpu_id) {
 					location.href = "/memory.html";
 				} else {
