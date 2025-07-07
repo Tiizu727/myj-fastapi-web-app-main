@@ -6,6 +6,10 @@
 class PartsFilter {
   constructor(containerId, data) {
     this.container = document.getElementById(containerId);
+    if (!this.container) {
+      console.error(`Container element with id '${containerId}' not found`);
+      return;
+    }
     this.originalData = data;
     this.filteredData = [...data];
     this.filters = {};
@@ -254,6 +258,11 @@ class PartsFilter {
 
   // イベントリスナーを追加
   attachEventListeners() {
+    if (!this.container) {
+      console.error('Container not found, cannot attach event listeners');
+      return;
+    }
+    
     const filterSelects = this.container.querySelectorAll('select[id$="-filter"]');
     
     filterSelects.forEach(select => {
@@ -380,6 +389,11 @@ class PartsFilter {
 
   // フィルターをリセット
   resetFilters() {
+    if (!this.container) {
+      console.error('Container not found, cannot reset filters');
+      return;
+    }
+    
     this.filters = {};
     this.filteredData = [...this.originalData];
     
