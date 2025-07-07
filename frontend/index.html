@@ -14,6 +14,16 @@
         <a href="/index.html" class="site-title-link">
           <h1 class="site-title">だれでも自作PCナビ</h1>
         </a>
+        <div class="header-nav">
+          <a href="/mypage.html" class="nav-button" id="mypage-button" style="display: none;">
+            <span class="button-icon">👤</span>
+            マイページ
+          </a>
+          <a href="/login.html" class="nav-button" id="login-button">
+            <span class="button-icon">🔑</span>
+            ログイン
+          </a>
+        </div>
       </div>
     </div>
     
@@ -59,6 +69,7 @@
       </div>
     </div>
 
+		<script src="/js/general.js"></script>
 		<script>
 			localStorage.removeItem("cpu");
 			localStorage.removeItem("gpu");
@@ -69,6 +80,20 @@
 			localStorage.removeItem("psu");
 			localStorage.removeItem("case");
 			localStorage.removeItem("os");
+
+			// ログイン状態を確認してナビゲーションを切り替え
+			const mypageButton = document.getElementById('mypage-button');
+			const loginButton = document.getElementById('login-button');
+
+			if (checkLogin()) {
+				// ログイン済みの場合
+				mypageButton.style.display = 'flex';
+				loginButton.style.display = 'none';
+			} else {
+				// 未ログインの場合
+				mypageButton.style.display = 'none';
+				loginButton.style.display = 'flex';
+			}
 		</script>
 	</body>
 </html>

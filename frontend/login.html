@@ -103,7 +103,13 @@
         megsBox.innerHTML = '<span style="color: #00b894;">✅ ログインに成功しました</span>'
         megsBox.style.display = 'block'
         setTimeout(() => {
-          location.href = '/save-build.html'
+          // 前のページがsave-build.htmlだった場合はそちらに、それ以外はindex.htmlに移動
+          const referrer = document.referrer
+          if (referrer && referrer.includes('/save-build.html')) {
+            location.href = '/save-build.html'
+          } else {
+            location.href = '/index.html'
+          }
         }, 1000)
       })
       .catch((error) => {
