@@ -152,10 +152,24 @@
 					
 					// 初期表示
 					renderFilteredProducts(allProducts);
+					
+					// 結果件数を更新
+					const resultCount = document.getElementById('result-count');
+					if (resultCount) {
+						resultCount.textContent = `${allProducts.length}件の商品が見つかりました`;
+					}
 				})
 				.catch((error) => {
 					console.error("エラー:", error);
-					productsList.innerHTML = `<p style="color:red;">データ取得に失敗しました。<br>${error.message}</p>$`;
+					productsList.innerHTML = `<p style="color:red;">データ取得に失敗しました。<br>${error.message}</p>`;
+					
+					// エラー時の結果件数表示
+					const resultCount = document.getElementById('result-count');
+					if (resultCount) {
+						resultCount.textContent = 'データの読み込みに失敗しました';
+						resultCount.style.color = '#e74c3c';
+						resultCount.style.borderColor = '#e74c3c';
+					}
 				});
 
 			function move(id) {
