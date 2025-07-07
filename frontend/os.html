@@ -23,23 +23,34 @@
 				<p class="page-subtitle">お好みのオペレーティングシステムを選択してください</p>
 			</div>
 			
-			<div class="products-container">
+			<div class="products-container" id="products-container">
 				<div class="filters-sidebar">
 					<h3>絞り込み</h3>
+					<div class="filter-group">
+						<label>キーワード検索</label>
+						<input type="text" id="search-input" class="search-box" placeholder="OSを検索...">
+					</div>
 					<div class="filter-group">
 						<label>メーカー</label>
 						<select id="maker-filter">
 							<option value="">すべて</option>
 						</select>
 					</div>
+					<div class="filter-actions">
+						<button id="reset-filters" class="reset-button">リセット</button>
+					</div>
 				</div>
 				
-				<div class="products-grid" id="os-list">
-					<!-- ここに商品が入る -->
+				<div class="products-content">
+					<div id="result-count" class="result-count">読み込み中...</div>
+					<div class="products-grid" id="os-list">
+						<!-- ここに商品が入る -->
+					</div>
 				</div>
 			</div>
 		</div>
 
+		<script src="/js/filters.js"></script>
 		<script>
 			localStorage.removeItem("os");
 
@@ -48,6 +59,47 @@
 
 			const DB_URL = `${API_BASE_URL}/${ENDPOINT}`;
 			const productsList = document.getElementById("os-list");
+
+			let partsFilter;
+			let allProducts = [];
+
+			// フィルタリング結果を表示する関数
+			window.renderFilteredProducts = function(products) {
+				productsList.innerHTML = '';
+				if(products.length === 0){
+					productsList.innerHTML = `
+						<div class="no-products">
+							<h3>該当する商品がありません</h3>
+							<p>条件を変更して再度お試しください</p>
+						</div>
+					`;
+				} else {
+					products.forEach((product) => {
+						const productDiv = document.createElement("div");
+						productDiv.className = "product-card";
+						productDiv.innerHTML = `
+							<div class="product-image">
+								${product.image_url ? `<img src="${product.image_url}" alt="${product.name}">` : '<div class="no-image">画像なし</div>'}
+							</div>
+							<div class="product-info">
+								<div class="product-maker">${product.maker ? product.maker : "OS"}</div>
+								<h3 class="product-name">${product.name}</h3>
+								<div class="product-specs">
+									<div class="spec-item">
+										<span class="spec-label">種類</span>
+										<span class="spec-value">オペレーティングシステム</span>
+									</div>
+								</div>
+								<div class="product-actions">
+									${product.information_url ? `<a href="${product.information_url}" class="info-button" target="_blank">詳細情報</a>` : '<span class="info-button disabled">詳細情報なし</span>'}
+									<button onclick="move(${product.id})" class="select-button">選択する</button>
+								</div>
+							</div>
+						`;
+						productsList.appendChild(productDiv);
+					});
+				}
+			};
 
 			fetch(DB_URL, {
 				method: "GET",
@@ -62,39 +114,18 @@
 					return response.json();
 				})
 				.then((jsonObj) => {
-					if (Object.keys(jsonObj).length == 0) {
-						productsList.innerHTML = `
-							<div class="no-products">
-								<h3>該当する商品がありません</h3>
-								<p>条件を変更して再度お試しください</p>
-							</div>
-						`;
-					} else {
-						productsList.innerHTML = '';
-						jsonObj.forEach((product) => {
-							const productDiv = document.createElement("div");
-							productDiv.className = "product-card";
-							productDiv.innerHTML = `
-								<div class="product-image">
-									${product.image_url ? `<img src="${product.image_url}" alt="${product.name}">` : '<div class="no-image">画像なし</div>'}
-								</div>
-								<div class="product-info">
-									<div class="product-maker">${product.maker ? product.maker : "OS"}</div>
-									<h3 class="product-name">${product.name}</h3>
-									<div class="product-specs">
-										<div class="spec-item">
-											<span class="spec-label">種類</span>
-											<span class="spec-value">オペレーティングシステム</span>
-										</div>
-									</div>
-									<div class="product-actions">
-										${product.information_url ? `<a href="${product.information_url}" class="info-button" target="_blank">詳細情報</a>` : '<span class="info-button disabled">詳細情報なし</span>'}
-										<button onclick="move(${product.id})" class="select-button">選択する</button>
-									</div>
-								</div>
-							`;
-							productsList.appendChild(productDiv);
-						});
+					allProducts = jsonObj;
+					
+					// フィルタリング機能を初期化
+					partsFilter = new PartsFilter('products-container', allProducts);
+					
+					// 初期表示
+					renderFilteredProducts(allProducts);
+					
+					// 結果件数を更新
+					const resultCount = document.getElementById('result-count');
+					if (resultCount) {
+						resultCount.textContent = `${allProducts.length}件の商品が見つかりました`;
 					}
 				})
 				.catch((error) => {
@@ -105,6 +136,14 @@
 							<p style="color:red;">${error.message}</p>
 						</div>
 					`;
+					
+					// エラー時の結果件数表示
+					const resultCount = document.getElementById('result-count');
+					if (resultCount) {
+						resultCount.textContent = 'データの読み込みに失敗しました';
+						resultCount.style.color = '#e74c3c';
+						resultCount.style.borderColor = '#e74c3c';
+					}
 				});
 				
 			function move(id) {
